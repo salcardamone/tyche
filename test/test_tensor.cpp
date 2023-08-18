@@ -6,7 +6,7 @@
 // Third-Party Libraries
 #include <gtest/gtest.h>
 // Project Inclusions
-#include "tensor.hpp"
+#include "tyche/tensor.hpp"
 
 using namespace tyche;
 
@@ -53,5 +53,26 @@ TEST(TensorTests, Access) {
     ASSERT_EQ(*tensor_it++, 1);
     ASSERT_EQ(*tensor_it++, 2);
     ASSERT_EQ(*tensor_it, 3);
+  }
+}
+
+/**
+ * @brief Check constructors work as expected.
+ */
+TEST(TensorTests, Constructors) {
+  // Move constructor
+  {
+    Tensor<double, 4> tensor_4d(3, 4, 5, 6);
+    tensor_4d(1, 1, 1, 1) = 10;
+    auto moved = std::move(tensor_4d);
+    ASSERT_EQ(moved(1, 1, 1, 1), 10);
+  }
+  // Copy constructor
+  {
+    Tensor<double, 4> tensor_4d(3, 4, 5, 6);
+    tensor_4d(1, 1, 1, 1) = 10;
+    auto copied = std::ref(tensor_4d);
+    ASSERT_EQ(tensor_4d(1, 1, 1, 1), 10);
+    ASSERT_EQ(copied(1, 1, 1, 1), 10);
   }
 }

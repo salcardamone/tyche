@@ -32,6 +32,7 @@ class AtomType {
   AtomType(AtomType&&) = default;
   AtomType& operator=(AtomType&&) = default;
 
+  const std::string id() const { return id_; }
   const double mass() const { return mass_; }
   const uint32_t nuclear_charge() const { return nuclear_charge_; }
   const uint32_t num_electrons() const { return num_electrons_; }

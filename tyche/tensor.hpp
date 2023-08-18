@@ -60,10 +60,16 @@ class Tensor {
     data_ = std::move(data);
   }
 
-  Tensor(Tensor<DataType,NumDims>&) = default;
-  Tensor(const Tensor<DataType,NumDims>&) = default;
-  Tensor(Tensor<DataType,NumDims>&&) = default;
+  /**
+   * @brief Empty constructor; everything is zero-sized -- defer meaningful
+   * creation for being moved to at a later point.
+   */
+  Tensor() : dim_size_{0}, data_(0) {}
   
+  Tensor(const Tensor<DataType, NumDims>&) = default;
+  Tensor(Tensor<DataType, NumDims>&&) = default;
+  Tensor& operator=(const Tensor<DataType, NumDims>&) = default;
+
   /**
    * @brief Constant getter from the underlying std::vector at query position.
    * @param args Parameter pack containing the dimension indices.
@@ -151,7 +157,7 @@ class Tensor {
     assert(idim < NumDims);
     return dim_size_[idim];
   }
-  
+
  private:
   std::array<std::size_t, NumDims> dim_size_, stride_;
   std::vector<DataType> data_;
@@ -185,6 +191,6 @@ class Tensor {
   }
 };
 
-} // namespace tyche
-  
+}  // namespace tyche
+
 #endif /* #ifndef __TYCHE_TENSOR_HPP */
