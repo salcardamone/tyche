@@ -12,7 +12,7 @@
 #include <iostream>
 #include <functional>
 // Third-Party Libraries
-//
+#include <spdlog/spdlog.h>
 // Project Inclusions
 //
 
@@ -65,7 +65,7 @@ class Tensor {
    * creation for being moved to at a later point.
    */
   Tensor() : dim_size_{0}, data_(0) {}
-  
+
   Tensor(const Tensor<DataType, NumDims>&) = default;
   Tensor(Tensor<DataType, NumDims>&&) = default;
   Tensor& operator=(const Tensor<DataType, NumDims>&) = default;
@@ -92,6 +92,12 @@ class Tensor {
     verify_dims(args...);
     return data_[flat_idx(args...)];
   }
+
+  /**
+   * @brief Return the dimensionality of the Tensor.
+   * @return The dimensionality of the Tensor.
+   */
+  constexpr std::size_t dims() { return NumDims; }
 
   /**
    * @brief Return iterator to beginning of data_ member.
@@ -158,6 +164,89 @@ class Tensor {
     return dim_size_[idim];
   }
 
+  /**
+   * @brief Resize each of the tensor's dimensions; if the tensor ends up larger
+   * than before, zeros will be used as fill elements.
+   * @param args Parameter pack containing the new dimension indices.
+   */
+  template <typename... Args>
+  void resize(Args... args) {
+    verify_dims(args...);
+
+    dim_size_ = {static_cast<std::size_t>(args)...};
+
+    stride_[NumDims - 1] = 1;
+    for (int idim = NumDims - 2; idim >= 0; --idim) {
+      stride_[idim] = stride_[idim + 1] * dim_size_[idim + 1];
+    }
+
+    data_.resize(num_elements(), 0);
+  }
+
+  /**
+   * @brief Horizontally concatenate this tensor with the argument tensor.
+   * This is only valid when the tensors are 2D matrices.
+   * @param other Tensor to concatenate with this Tensor.
+   */
+  void concatenate(Tensor<DataType, NumDims>& other) {
+    static_assert(NumDims == 2, "Tensor concatenation requires 2D Tensors.");
+    assert(size(0) == other.size(0));
+
+    std::array<std::size_t, NumDims> new_size{dim_size_};
+    new_size[1] += other.size(1);
+    auto old_size = dim_size_;
+
+    resize(new_size[0], new_size[1]);
+
+    // Fill in additional space between rows for concatenation of new matrix,
+    // then dump the data from the other matrix into that space
+    for (std::size_t irow = 0; irow < new_size[0]; ++irow) {
+      // Where to start placing B in resized A
+      auto start_it = data_.begin() + irow * new_size[1] + old_size[1];
+      // Where final element of A is in resized A
+      auto end_it = start_it + old_size[1] * (old_size[0] - irow - 1);
+      // Where to place the data in resized A
+      auto dest_it = start_it + other.size(1);
+
+      // We can't copy directly into the resized A else we'll overwrite the
+      // stuff we're trying to copy, hence we duplicate the elements to copy
+      std::vector<DataType> temp(start_it, end_it);
+      // Create additional space for the concatenation
+      std::copy_if(
+          temp.begin(), temp.end(), dest_it,
+          [irow, new_size](DataType x) { return irow < new_size[0] - 1; });
+      // Copy the other matrix's data into the space
+      std::copy(other.begin() + irow * other.size(1),
+                other.begin() + (irow + 1) * other.size(1), start_it);
+    }
+  }
+
+  /**
+   * @brief << operator overload for output stream iterators. Dump some
+   * information to the output stream iterator.
+   *
+   * Requires the Tensor be 2D, and dumps contents in matrix format.
+   * @param os The output stream iterator.
+   * @param tensor The Tensor to dump information about.
+   * @return The modified output stream iterator.
+   */
+  friend std::ostream& operator<<(std::ostream& os,
+                                  Tensor<DataType, NumDims>& tensor) {
+    static_assert(
+        NumDims == 2,
+        "Printing of a Tensor requires the tensor dimensionality be two.");
+
+    os << "Tensor has size : " << tensor.size(0) << " x " << tensor.size(1)
+       << '\n';
+    for (std::size_t irow = 0; irow < tensor.size(0); ++irow) {
+      for (std::size_t icol = 0; icol < tensor.size(1); ++icol) {
+        os << tensor(irow, icol) << ", ";
+      }
+      os << '\n';
+    }
+    return os;
+  }
+
  private:
   std::array<std::size_t, NumDims> dim_size_, stride_;
   std::vector<DataType> data_;
@@ -192,5 +281,20 @@ class Tensor {
 };
 
 }  // namespace tyche
+
+/**
+ * @brief Formatter for the Tensor object that allows us to print information
+ * with spdlog.
+ */
+template <typename DataType, std::size_t NumDims>
+struct fmt::formatter<tyche::Tensor<DataType, NumDims>>
+    : fmt::formatter<std::string> {
+  auto format(tyche::Tensor<DataType, NumDims>& tensor, format_context& ctx)
+      -> decltype(ctx.out()) {
+    std::ostringstream ss;
+    ss << tensor;
+    return format_to(ctx.out(), "{}", ss.str());
+  }
+};
 
 #endif /* #ifndef __TYCHE_TENSOR_HPP */

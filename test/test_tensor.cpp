@@ -76,3 +76,48 @@ TEST(TensorTests, Constructors) {
     ASSERT_EQ(copied(1, 1, 1, 1), 10);
   }
 }
+
+/**
+ * @brief Test whether we can resize a tensor as expected.
+ */
+TEST(TensorTests, Resize) {
+  Tensor<double, 4> tensor_4d(1, 2, 3, 4);
+  tensor_4d.resize(2, 2, 3, 4);
+  ASSERT_EQ(tensor_4d.size(0), 2);
+  ASSERT_EQ(tensor_4d.size(1), 2);
+  ASSERT_EQ(tensor_4d.size(2), 3);
+  ASSERT_EQ(tensor_4d.size(3), 4);
+  ASSERT_EQ(tensor_4d.num_elements(), 48);
+}
+
+/**
+ * @brief Test whether we can concatenate two 2D matrices as expected.
+ */
+TEST(TensorTests, Concatenation) {
+  Tensor<double, 2> tensor_a(std::vector<double>{1, 2, 3, 4, 5, 6}, 3, 2);
+  Tensor<double, 2> tensor_b(std::vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9}, 3,
+                             3);
+  tensor_a.concatenate(tensor_b);
+
+  ASSERT_EQ(tensor_a.size(0), 3);
+  ASSERT_EQ(tensor_a.size(1), 5);
+  ASSERT_EQ(tensor_a.num_elements(), 15);
+
+  ASSERT_EQ(tensor_a(0, 0), 1);
+  ASSERT_EQ(tensor_a(0, 1), 2);
+  ASSERT_EQ(tensor_a(0, 2), 1);
+  ASSERT_EQ(tensor_a(0, 3), 2);
+  ASSERT_EQ(tensor_a(0, 4), 3);
+
+  ASSERT_EQ(tensor_a(1, 0), 3);
+  ASSERT_EQ(tensor_a(1, 1), 4);
+  ASSERT_EQ(tensor_a(1, 2), 4);
+  ASSERT_EQ(tensor_a(1, 3), 5);
+  ASSERT_EQ(tensor_a(1, 4), 6);
+
+  ASSERT_EQ(tensor_a(2, 0), 5);
+  ASSERT_EQ(tensor_a(2, 1), 6);
+  ASSERT_EQ(tensor_a(2, 2), 7);
+  ASSERT_EQ(tensor_a(2, 3), 8);
+  ASSERT_EQ(tensor_a(2, 4), 9);
+}
