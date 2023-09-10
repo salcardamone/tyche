@@ -8,7 +8,6 @@
 #include <map>
 #include <memory>
 // Third-Party Libraries
-#include <toml++/toml.h>
 #include <spdlog/spdlog.h>
 // Project Inclusions
 #include "tyche/tensor.hpp"
@@ -26,56 +25,46 @@ class AtomicState {
    * @brief Class constructor.
    * @param needs_velocity Boolean flag dictating whether we need to allocate
    * arrays to hold atomic velocity information.
-   * @param needs_acceleration Boolean flag dictating whether we need to
-   * allocate arrays to hold atomic acceleration information.
+   * @param needs_force Boolean flag dictating whether we need to
+   * allocate arrays to hold atomic force information.
    */
-  AtomicState(bool needs_velocity = false, bool needs_acceleration = false)
-      : needs_velocity_(needs_velocity),
-        needs_acceleration_(needs_acceleration) {}
+  AtomicState(bool needs_velocity = false, bool needs_force = false)
+      : needs_velocity_(needs_velocity), needs_force_(needs_force) {}
 
   /**
-   * @brief Add atom positional information for a given atom type.
-   * @param atom_type The AtomType we're adding atoms of.
-   * @param pos 2D array of positional information
-   * @param vel 2D array of velocity information. Optional; if the simulation
-   * needs velocity information and this isn't provided, will allocate empty
-   * tensor.
-   * @param acc 2D array of acceleration information. Optional; if the
-   * simulation needs velocity information and this isn't provided, will
-   * allocate empty tensor.
+   * @brief Add atoms to the atomic state.
+   * @param atom_types Vector of atom types; one for each atom added.
+   * @param pos Positional information for each atom.
+   * @param vel Velocity information for each atom. Optional; if velocity is
+   * required for the simulation and this isn't provided, velocities will be
+   * initialised with zero.
+   * @param force Force information for each atom. Optional; if force is
+   * required for the simulation and this isn't provided, forces will be
+   * initialised with zero.
    */
-  void add(std::shared_ptr<AtomType> atom_type, Tensor<double, 2>&& pos,
-           std::optional<Tensor<double, 2>> vel = std::nullopt,
-           std::optional<Tensor<double, 2>> acc = std::nullopt) {
-    // Atom type isn't in the map, so we can add it safely
-    if (num_atoms_.find(atom_type) == num_atoms_.end()) {
-      if (pos.size(0) != 3) {
-        spdlog::error(
-            "Atomic State position Tensor needs to have 3 rows. Passed Tensor"
-            "with {} rows.",
-            pos.size(0));
-        std::exit(EXIT_FAILURE);
-      }
+  void add(std::vector<std::shared_ptr<AtomType>>&& atom_types,
+           Tensor<double, 2>&& pos,
+           std::optional<Tensor<double, 2>>&& vel = std::nullopt,
+           std::optional<Tensor<double, 2>>&& force = std::nullopt) {
+    // Move the atom types and positional information into the state
+    atom_types_ = std::move(atom_types);
+    pos_ = std::move(pos);
 
-      num_atoms_[atom_type] = pos.size(1);
-      pos_[atom_type] = std::move(pos);
-      spdlog::info("Adding {} atoms of Atom Type {} to the Atomic State.",
-                   num_atoms_[atom_type], atom_type->id());
-
-      if (needs_velocity_) {
-        vel_[atom_type] =
-            vel.value_or(Tensor<double, 2>(3, num_atoms_[atom_type]));
+    // Count up the number of atoms of each atom type we have
+    for (const auto& atom_type : atom_types_) {
+      if (!num_atoms_.count(atom_type)) {
+        num_atoms_.insert({atom_type, 0});
       }
-      if (needs_acceleration_) {
-        acc_[atom_type] =
-            acc.value_or(Tensor<double, 2>(3, num_atoms_[atom_type]));
-      }
+      num_atoms_.at(atom_type) += 1;
+    }
 
-      // Not really sure whether we need to handle this case; just error for now
-    } else {
-      spdlog::error("Atom Type {} has already been added to the Atomic State",
-                    atom_type->id());
-      std::exit(EXIT_FAILURE);
+    // Initialise velocities and forces as zero if we need this information for
+    // the simulation and data not provided. Else just move the provided data.
+    if (needs_velocity_) {
+      vel_ = std::move(vel.value_or(Tensor<double, 2>(num_atoms(), 3)));
+    }
+    if (needs_force_) {
+      force_ = std::move(force.value_or(Tensor<double, 2>(num_atoms(), 3)));
     }
   }
 
@@ -97,21 +86,73 @@ class AtomicState {
   }
 
   /**
-   * @brief Constant accessor for positional information of atoms of given atom
-   * type.
-   * @param atom_type The AtomType we're querying the positions of.
-   * @return Constant reference to positional tensor for AtomType.
+   * @brief Return constant iterator for an atom's positional information.
+   * @param iatom The index of the atom.
+   * @return Constant iterator to atom's positional information.
    */
-  const Tensor<double, 2>& pos(std::shared_ptr<AtomType> atom_type) const {
-    return pos_.at(atom_type);
+  const Tensor<double, 2>::const_iterator pos(std::size_t iatom) const {
+    return pos_.begin() + 3 * iatom;
+  }
+
+  /**
+   * @brief Return iterator for an atom's positional information.
+   * @param iatom The index of the atom.
+   * @return Iterator to atom's positional information.
+   */
+  Tensor<double, 2>::iterator pos(std::size_t iatom) {
+    return pos_.begin() + 3 * iatom;
+  }
+
+  /**
+   * @brief Return constant iterator for an atom's velocity information.
+   * @param iatom The index of the atom.
+   * @return Constant iterator to atom's velocity information.
+   */
+  const Tensor<double, 2>::const_iterator vel(std::size_t iatom) const {
+    return vel_.begin() + 3 * iatom;
+  }
+
+  /**
+   * @brief Return iterator for an atom's velocity information.
+   * @param iatom The index of the atom.
+   * @return Iterator to atom's velocity information.
+   */
+  Tensor<double, 2>::iterator vel(std::size_t iatom) {
+    return vel_.begin() + 3 * iatom;
+  }
+
+  /**
+   * @brief Return constant iterator for an atom's force information.
+   * @param iatom The index of the atom.
+   * @return Constant iterator to atom's force information.
+   */
+  const Tensor<double, 3>::const_iterator force(std::size_t iatom) const {
+    return force_.begin() + 3 * iatom;
+  }
+
+  /**
+   * @brief Return iterator for an atom's force information.
+   * @param iatom The index of the atom.
+   * @return Iterator to atom's force information.
+   */
+  Tensor<double, 3>::iterator force(std::size_t iatom) {
+    return force_.begin() + 3 * iatom;
+  }
+
+  /**
+   * @brief Return atom type corresponding to given atom index.
+   * @param iatom The index of the atom.
+   * @return Shared pointer to the corresponding atom type.
+   */
+  std::shared_ptr<AtomType> atom_type(std::size_t iatom) {
+    return atom_types_[iatom];
   }
 
  private:
-  bool needs_velocity_, needs_acceleration_;
+  bool needs_velocity_, needs_force_;
   std::map<std::shared_ptr<AtomType>, std::size_t> num_atoms_;
-  // Note that these are 2D tensors where the rows enumerate spatial
-  // dimensions and columns the atom index
-  std::map<std::shared_ptr<AtomType>, Tensor<double, 2>> pos_, vel_, acc_;
+  Tensor<double, 2> pos_, vel_, force_;
+  std::vector<std::shared_ptr<AtomType>> atom_types_;
 };
 
 }  // namespace tyche

@@ -24,6 +24,8 @@ static constexpr std::string_view basic_toml = R"(
     )"sv;
 
 TEST(TestAtomTypeReader, ParseAtomType) {
+  spdlog::set_level(spdlog::level::off);
+
   toml::table config = toml::parse(basic_toml);
   AtomTypeReader reader(config);
   auto atom_types = reader.parse();

@@ -35,49 +35,112 @@ class AtomicStateReader {
    * @return The AtomicState object parsed from the configuration TOML.
    */
   AtomicState parse(
-      std::map<std::string, std::shared_ptr<AtomType>>& atom_types) {
-    AtomicState state;
+      std::map<std::string, std::shared_ptr<AtomType>>& atom_types,
+      bool needs_velocity = false, bool needs_acceleration = false) {
 
-    // Loop over all atom types within the [Atoms] section of the TOML and
-    // add the atoms therein to the AtomicState
-    for (auto key : toml_) {
-      std::ostringstream ss;
-      ss << key.first;
-      auto atom_type = atom_types.at(ss.str());
-      auto pos = parse_tensor(ss.str(), "positions");
-      auto vel = parse_tensor(ss.str(), "velocities");
-      auto acc = parse_tensor(ss.str(), "accelerations");
-      state.add(atom_type, std::move(*pos), vel, acc);
+    AtomicState state(needs_velocity, needs_acceleration);
+
+    auto num_atoms_type = parse_atom_types();
+
+    std::size_t num_atoms = 0;
+    for (const auto& k : atom_types) {
+      spdlog::info("Found {} atom/s of type {}.", num_atoms_type.at(k.first),
+                   k.first);
+      num_atoms += num_atoms_type.at(k.first);
     }
+    spdlog::info("Found {} atom/s in total.", num_atoms);
+
+    auto pos = parse_tensor("positions", num_atoms);
+    auto vel = parse_tensor("velocities", num_atoms);
+    auto force = parse_tensor("forces", num_atoms);
+    auto types = create_types(atom_types, num_atoms_type);
+
+    state.add(std::move(types), std::move(*pos), std::move(vel),
+              std::move(force));
+
     return state;
   }
 
  private:
   /**
-   * @brief Parse the tensor data of all atoms belonging to a particular
-   * AtomType into a Tensor.
-   * @param atom_type Identifier string for the atom type we're parsing.
-   * @param id The tensor type; can be "positions", "velocities", or
-   * "accelerations".
-   * @return 2D tensor containing atomic tensor data; rows enumerate spatial
-   * dimension, column the atom index. Optional; will return nothing if the
-   * tensor type isn't available in the TOML.
+   * @brief Attempt to parse tensor data across all atom types in the
+   * configuration, dumping it all into a single tensor.
+   * @param id
+   * @param num_atoms
+   * @return
    */
-  std::optional<Tensor<double, 2>> parse_tensor(std::string atom_type,
-                                                std::string id) {
-    if (!toml_[atom_type][id]) return std::nullopt;
+  std::optional<Tensor<double, 2>> parse_tensor(std::string id,
+                                                std::size_t num_atoms) {
+    Tensor<double, 2> tensor(num_atoms, 3);
 
-    const toml::array* data = toml_[atom_type][id].as_array();
-    Tensor<double, 2> tensor(3, data->size());
+    std::size_t num_atoms_processed = 0;
+    for (const auto& atom_type : toml_) {
+      if (!toml_[atom_type.first][id]) return std::nullopt;
 
+      const toml::array* data = toml_[atom_type.first][id].as_array();
+
+      num_atoms_processed +=
+          parse_tensor_atom_type(data, tensor, num_atoms_processed);
+    }
+    return std::optional<Tensor<double, 2>>(std::move(tensor));
+  }
+
+  /**
+   * @brief Parse atom type information from the configuration and dump it into
+   * a tensor at some specified atom offset.
+   * @param data
+   * @param tensor
+   * @param offset
+   * @return
+   */
+  std::size_t parse_tensor_atom_type(const toml::array* data,
+                                     Tensor<double, 2>& tensor,
+                                     std::size_t offset) {
     for (std::size_t iatom = 0; iatom < data->size(); ++iatom) {
       auto cart_data = data->at(iatom).as_array();
       for (std::size_t idim = 0; idim < cart_data->size(); ++idim) {
-        tensor(idim, iatom) = cart_data->at(idim).as_floating_point()->get();
+        tensor(iatom + offset, idim) =
+            cart_data->at(idim).as_floating_point()->get();
       }
     }
+    return data->size();
+  }
 
-    return tensor;
+  /**
+   * @brief Parse the atom types within the configuration and count the number
+   * of atoms of each type.
+   * @return A mapping from the atom type name to the number of atoms in the
+   * configuration for that particular atom type.
+   */
+  std::map<std::string, std::size_t> parse_atom_types() {
+    std::map<std::string, std::size_t> atom_types;
+    for (auto key : toml_) {
+      std::ostringstream ss;
+      ss << key.first;
+      std::size_t num_atoms = toml_[ss.str()]["positions"].as_array()->size();
+      atom_types[ss.str()] = num_atoms;
+    }
+    return atom_types;
+  }
+
+  /**
+   * @brief Create a vector of atom type pointers; one for each atom within the
+   * configuration.
+   * @param atom_types
+   * @param num_atoms_type
+   * @return
+   */
+  std::vector<std::shared_ptr<AtomType>> create_types(
+      std::map<std::string, std::shared_ptr<AtomType>>& atom_types,
+      std::map<std::string, std::size_t>& num_atoms_type) {
+    std::vector<std::shared_ptr<AtomType>> types;
+    for (const auto& type : num_atoms_type) {
+      for (std::size_t iatom = 0; iatom < num_atoms_type.at(type.first);
+           ++iatom) {
+        types.push_back(atom_types.at(type.first));
+      }
+    }
+    return types;
   }
 
   toml::table toml_;
