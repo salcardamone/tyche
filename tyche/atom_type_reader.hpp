@@ -65,6 +65,8 @@ class AtomTypeReader {
           .mass(atom_type_toml["mass"].value<double>())
           .num_electrons(atom_type_toml["num_electrons"].value<uint32_t>())
           .nuclear_charge(atom_type_toml["nuclear_charge"].value<uint32_t>())
+          .sigma_lj(atom_type_toml["sigma_lj"].value<double>())
+          .eps_lj(atom_type_toml["eps_lj"].value<double>())
           .build();
 
     } catch (const toml::parse_error& err) {

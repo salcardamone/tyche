@@ -51,9 +51,11 @@ class AtomicState {
     pos_ = std::move(pos);
 
     // Count up the number of atoms of each atom type we have
+    std::size_t num_atom_types = 0;
     for (const auto& atom_type : atom_types_) {
       if (!num_atoms_.count(atom_type)) {
         num_atoms_.insert({atom_type, 0});
+	atom_type_idx_.insert({atom_type, num_atom_types++});
       }
       num_atoms_.at(atom_type) += 1;
     }
@@ -150,7 +152,7 @@ class AtomicState {
 
  private:
   bool needs_velocity_, needs_force_;
-  std::map<std::shared_ptr<AtomType>, std::size_t> num_atoms_;
+  std::map<std::shared_ptr<AtomType>, std::size_t> num_atoms_, atom_type_idx_;
   Tensor<double, 2> pos_, vel_, force_;
   std::vector<std::shared_ptr<AtomType>> atom_types_;
 };

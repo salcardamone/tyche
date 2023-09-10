@@ -65,6 +65,7 @@ class AtomType {
   std::string id_;
   double mass_;
   uint32_t num_electrons_, nuclear_charge_;
+  double sigma_lj_, eps_lj_;
 };
 
 }  // namespace tyche

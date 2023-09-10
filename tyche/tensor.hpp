@@ -100,6 +100,13 @@ class Tensor {
   constexpr std::size_t dims() { return NumDims; }
 
   /**
+   * @brief Zero the contents of the Tensor.
+   */
+  void zero() {
+    std::fill(data_.begin(), data_.end(), 0);
+  }
+  
+  /**
    * @brief Return iterator to beginning of data_ member.
    * @return Iterator to beginning of data_member.
    */

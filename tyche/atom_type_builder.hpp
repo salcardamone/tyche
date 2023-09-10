@@ -59,6 +59,26 @@ class AtomTypeBuilder {
   }
 
   /**
+   * @brief Set the Lennard-Jones sigma in the built AtomType.
+   * @param sigma_lj The Lennard-Jones sigma.
+   * @return The AtomTypeBuilder object.
+   */
+  AtomTypeBuilder& sigma_lj(std::optional<double>&& sigma_lj) {
+    set_param<double>("sigma_lj", atom_type_.sigma_lj_, sigma_lj);
+    return *this;
+  }
+
+  /**
+   * @brief Set the Lennard-Jones epsilon in the built AtomType.
+   * @param sigma_lj The Lennard-Jones epsilon.
+   * @return The AtomTypeBuilder object.
+   */
+  AtomTypeBuilder& eps_lj(std::optional<double>&& eps_lj) {
+    set_param<double>("eps_lj", atom_type_.eps_lj_, eps_lj);
+    return *this;
+  }
+
+  /**
    * @brief Return the AtomType object that we've constructed.
    * @return The built AtomType object.
    */
