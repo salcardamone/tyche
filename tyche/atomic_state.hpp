@@ -150,9 +150,11 @@ class AtomicState {
     return atom_types_[iatom];
   }
 
+  std::map<std::shared_ptr<AtomType>, std::size_t> atom_type_idx_;
+  
  private:
   bool needs_velocity_, needs_force_;
-  std::map<std::shared_ptr<AtomType>, std::size_t> num_atoms_, atom_type_idx_;
+  std::map<std::shared_ptr<AtomType>, std::size_t> num_atoms_;
   Tensor<double, 2> pos_, vel_, force_;
   std::vector<std::shared_ptr<AtomType>> atom_types_;
 };

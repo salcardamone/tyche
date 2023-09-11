@@ -36,7 +36,9 @@ class AtomType {
   const double mass() const { return mass_; }
   const uint32_t nuclear_charge() const { return nuclear_charge_; }
   const uint32_t num_electrons() const { return num_electrons_; }
-
+  const double eps_lj() const { return eps_lj_; }
+  const double sigma_lj() const { return sigma_lj_; }
+  
   /**
    * @brief Create a new instance of the AtomTypeBuilder.
    * @param id The atom type identifier; typically the element name.
@@ -65,7 +67,7 @@ class AtomType {
   std::string id_;
   double mass_;
   uint32_t num_electrons_, nuclear_charge_;
-  double sigma_lj_, eps_lj_;
+  double eps_lj_, sigma_lj_;
 };
 
 }  // namespace tyche

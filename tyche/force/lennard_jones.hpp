@@ -32,9 +32,9 @@ class LennardJones : public Force {
         std::size_t idx = itype.second * atom_types.size() + jtype.second;
         std::size_t jdx = jtype.second * atom_types.size() + itype.second;
         eps_[idx] = eps_[jdx] =
-            mix_eps(itype.first->lj_eps(), jtype.first->lj_eps());
+            mix_eps(itype.first->eps_lj(), jtype.first->eps_lj());
         sigma_[idx] = sigma_[jdx] =
-            mix_sigma(itype.first->lj_sigma(), jtype.first->lj_sigma());
+            mix_sigma(itype.first->sigma_lj(), jtype.first->sigma_lj());
       }
     }
   }
@@ -67,18 +67,18 @@ class LennardJones : public Force {
         double dx_sq = dx * dx, dy_sq = dy * dy, dz_sq = dz * dz;
         double rsq = dx_sq + dy_sq + dz_sq;
         double r = std::sqrt(rsq);
-
+	
         std::size_t type_idx =
             atom_type_idx_[iatom_type] * atom_type_idx_.size() +
             atom_type_idx_[jatom_type];
 
         double sigma = sigma_[type_idx], eps = eps_[type_idx];
 
-        double B = sigma * sigma / rsq;
-        B *= (B * B);
+        double tmp = sigma * sigma / rsq;
+        double B = tmp * tmp * tmp;
         double A = B * B;
 
-        pot += 4 * eps * (A + B);
+        pot += 4 * eps * (A - B);
 
         double f_tmp = -(24 * eps / r) * (2 * A - B);
         double fx = f_tmp * dx, fy = f_tmp * dy, fz = f_tmp * dz;
