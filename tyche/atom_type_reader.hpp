@@ -58,20 +58,20 @@ class AtomTypeReader {
    */
   AtomType parse_atom_type(std::string atom_type) {
     spdlog::info("Attempting to parse atom type: {}", atom_type);
+    toml::v3::node_view<toml::v3::node> atom_type_toml;
     try {
-      auto atom_type_toml = toml_[atom_type];
-
-      return AtomType::create(atom_type)
-          .mass(atom_type_toml["mass"].value<double>())
-          .num_electrons(atom_type_toml["num_electrons"].value<uint32_t>())
-          .nuclear_charge(atom_type_toml["nuclear_charge"].value<uint32_t>())
-          .sigma_lj(atom_type_toml["sigma_lj"].value<double>())
-          .eps_lj(atom_type_toml["eps_lj"].value<double>())
-          .build();
-
+      atom_type_toml = toml_[atom_type];
     } catch (const toml::parse_error& err) {
       spdlog::critical("Parsing Failed: {}", err.description());
     }
+
+    return AtomType::create(atom_type)
+        .mass(atom_type_toml["mass"].value<double>())
+        .num_electrons(atom_type_toml["num_electrons"].value<uint32_t>())
+        .nuclear_charge(atom_type_toml["nuclear_charge"].value<uint32_t>())
+        .sigma_lj(atom_type_toml["sigma_lj"].value<double>())
+        .eps_lj(atom_type_toml["eps_lj"].value<double>())
+        .build();
   }
 };
 

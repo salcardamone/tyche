@@ -24,9 +24,9 @@ class LennardJones : public Force {
    * @param atom_types Mapping from atom type to an index on [0,num_atom_types).
    */
   LennardJones(std::map<std::shared_ptr<AtomType>, std::size_t>& atom_types)
-      : atom_type_idx_{atom_types},
-        eps_(atom_types.size() * atom_types.size()),
-        sigma_(atom_types.size() * atom_types.size()) {
+      : eps_(atom_types.size() * atom_types.size()),
+        sigma_(atom_types.size() * atom_types.size()),
+        atom_type_idx_{atom_types} {
     for (const auto& itype : atom_types) {
       for (const auto& jtype : atom_types) {
         std::size_t idx = itype.second * atom_types.size() + jtype.second;
@@ -67,7 +67,7 @@ class LennardJones : public Force {
         double dx_sq = dx * dx, dy_sq = dy * dy, dz_sq = dz * dz;
         double rsq = dx_sq + dy_sq + dz_sq;
         double r = std::sqrt(rsq);
-	
+
         std::size_t type_idx =
             atom_type_idx_[iatom_type] * atom_type_idx_.size() +
             atom_type_idx_[jatom_type];
@@ -83,12 +83,12 @@ class LennardJones : public Force {
         double f_tmp = -(24 * eps / r) * (2 * A - B);
         double fx = f_tmp * dx, fy = f_tmp * dy, fz = f_tmp * dz;
 
-        *iatom_force++ += fx / iatom_type->mass();
-        *jatom_force++ -= fx / jatom_type->mass();
-        *iatom_force++ += fy / iatom_type->mass();
-        *jatom_force++ -= fy / jatom_type->mass();
-        *iatom_force++ += fz / iatom_type->mass();
-        *jatom_force++ -= fz / jatom_type->mass();
+        *iatom_force++ += fx;
+        *jatom_force++ -= fx;
+        *iatom_force++ += fy;
+        *jatom_force++ -= fy;
+        *iatom_force++ += fz;
+        *jatom_force++ -= fz;
       }
     }
     return pot;
