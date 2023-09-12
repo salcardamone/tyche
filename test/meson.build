@@ -18,8 +18,6 @@ test_atomic_state_reader = executable('test_atomic_state_reader',
 )
 test('test_atomic_state_reader', test_atomic_state_reader)
 
-test_lennard_jones = executable('test_lennard_jones',
-  sources: 'test_lennard_jones.cpp',
-  dependencies: [gtest_dep, tyche_dep],
-)
-test('test_lennard_jones', test_lennard_jones)
+subdir('force')
+subdir('integrate')
+
