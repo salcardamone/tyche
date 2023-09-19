@@ -25,11 +25,11 @@ class TestVelocityVerlet
  * doesn't deviate appreciably from start position.
  */
 TEST_F(TestVelocityVerlet, StationaryEquilibrium) {
-  lj->evaluate(atomic_state);
+  forces.evaluate(atomic_state);
 
   const std::size_t num_steps = std::size_t(1E5);
   for (std::size_t istep = 0; istep < num_steps; ++istep) {
-    integrator->step(atomic_state, *lj, cell);
+    integrator->step(atomic_state, forces, cell);
     ASSERT_NEAR(*atomic_state.pos(0), rij_min, 1E-15);
     ASSERT_NEAR(*atomic_state.pos(1), 0.0, 1E-15);
     ASSERT_NEAR(*atomic_state.vel(0), 0.0, 1E-15);

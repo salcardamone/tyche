@@ -11,7 +11,7 @@
 // Project Inclusions
 #include "tyche/cell.hpp"
 #include "tyche/atomic_state.hpp"
-#include "tyche/force/lennard_jones.hpp"
+#include "tyche/force/force.hpp"
 
 namespace tyche {
 
@@ -33,7 +33,7 @@ class Integrate {
    * @param forces The force evaluation object.
    * @param cell The simulation cell for periodic boundary conditions.
    */
-  virtual void step(AtomicState& state, LennardJones& forces,
+  virtual void step(AtomicState& state, Forces& forces,
                     std::shared_ptr<Cell> cell) = 0;
 
  protected:

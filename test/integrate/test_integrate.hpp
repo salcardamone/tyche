@@ -27,8 +27,7 @@ class TestIntegrateLennardJonesEquilibrium
    * @brief Initialise the fixture with a simulation cell.
    */
   void SetUp(std::shared_ptr<Cell> input_cell) {
-    TestLennardJonesEquilibrium::SetUp();
-    integrator = std::make_unique<Integrator>(dt);
+    CommonSetUp();
     cell = input_cell;
   }
 
@@ -37,12 +36,22 @@ class TestIntegrateLennardJonesEquilibrium
    * default.
    */
   void SetUp() {
-    TestLennardJonesEquilibrium::SetUp();
-    integrator = std::make_unique<Integrator>(dt);
+    CommonSetUp();
     cell = std::make_shared<UnboundedCell>();
   }
 
  protected:
+  /**
+   * @brief Common setup needed across all SetUp methods.
+   */
+  void CommonSetUp() {
+    TestLennardJonesEquilibrium::SetUp();
+    forces.add(
+        [this](AtomicState& state) { return this->lj->evaluate(state); });
+    integrator = std::make_unique<Integrator>(dt);
+  }
+
+  Forces forces;
   std::unique_ptr<Integrator> integrator;
   std::shared_ptr<Cell> cell;
   const double dt = 1;

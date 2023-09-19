@@ -5,7 +5,7 @@
 #define __TYCHE_FORCE_FORCE_HPP
 
 // C++ Standard Libraries
-//
+#include <functional>
 // Third-Party Libraries
 //
 // Project Inclusions
@@ -24,6 +24,42 @@ class Force {
    * @return The total energy associated with the forces.
    */
   virtual double evaluate(AtomicState& state) = 0;
+};
+
+/**
+ * @brief Wrapper for all forces required for atomic state propagation.
+ */
+class Forces : public Force {
+ public:
+  /**
+   * @brief Evaluate all forces for the argument atomic state.
+   * @param state The atomic state.
+   * @return The potential energy accumulated across all forces.
+   */
+  double evaluate(AtomicState& state) override {
+    // We're going to accumulate to the force_ component of the atomic state, so
+    // zero before starting
+    state.zero_forces();
+
+    double pot = 0;
+    for (auto& force : forces_) {
+      pot += force(state);
+    }
+    return pot;
+  }
+
+  /**
+   * @brief Add a force evaluation function to the iterable of other force
+   * evaluation functions already registered.
+   * @param eval The function which takes an AtomicState object and return the
+   * potential energy from the force evaluation.
+   */
+  void add(std::function<double(AtomicState&)> eval) {
+    forces_.push_back(eval);
+  }
+
+ private:
+  std::vector<std::function<double(AtomicState&)>> forces_;
 };
 
 }  // namespace tyche

@@ -11,7 +11,7 @@
 // Project Inclusions
 #include "tyche/cell.hpp"
 #include "tyche/atomic_state.hpp"
-#include "tyche/force/lennard_jones.hpp"
+#include "tyche/force/force.hpp"
 #include "tyche/integrate/integrate.hpp"
 
 namespace tyche {
@@ -39,7 +39,7 @@ class VelocityVerlet : public Integrate {
    * @param forces The force evaluation object.
    * @param cell The simulation cell for periodic boundary conditions.
    */
-  void step(AtomicState& state, LennardJones& forces,
+  void step(AtomicState& state, Forces& forces,
             std::shared_ptr<Cell> cell) override final {
     Tensor<double, 2>::iterator pos = state.pos(), vel = state.vel();
     Tensor<double, 2>::const_iterator force = state.force();
@@ -51,13 +51,11 @@ class VelocityVerlet : public Integrate {
         *vel += k * *force++;
         pos[idim] += *vel++ * dt_;
       }
+      // Apply periodic boundary conditions
       cell->pbc(pos[0], pos[1], pos[2]);
       pos += 3;
     }
 
-    // We're going to accumulate to the force_ component of the atomic state, so
-    // zero before starting
-    state.zero_forces();
     // Evaluate forces at new positions
     forces.evaluate(state);
 
