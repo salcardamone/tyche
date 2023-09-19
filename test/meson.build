@@ -18,6 +18,12 @@ test_atomic_state_reader = executable('test_atomic_state_reader',
 )
 test('test_atomic_state_reader', test_atomic_state_reader)
 
+test_cell = executable('test_cell',
+  sources: 'test_cell.cpp',
+  dependencies: [gtest_dep, tyche_dep],
+)
+test('test_cell', test_cell)
+
 subdir('force')
 subdir('integrate')
 
