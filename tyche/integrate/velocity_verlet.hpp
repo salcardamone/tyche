@@ -38,23 +38,26 @@ class VelocityVerlet : public Integrate {
    * @param forces The force evaluation object.
    */
   void step(AtomicState& state, LennardJones& forces) override final {
-    Tensor<double, 2>::iterator pos = state.pos(0), vel = state.vel(0);
-    Tensor<double, 2>::const_iterator force = state.force(0);
+    Tensor<double, 2>::iterator pos = state.pos(), vel = state.vel();
+    Tensor<double, 2>::const_iterator force = state.force();
 
     // Advance velocity by half timestep and position by full timestep
     for (std::size_t iatom = 0; iatom < state.num_atoms(); ++iatom) {
       double k = half_dt_ / state.atom_type(iatom)->mass();
       for (std::size_t idim = 0; idim < 3; ++idim) {
         *vel += k * *force++;
-        *pos++ += *vel++ * half_dt_;
+        *pos++ += *vel++ * dt_;
       }
     }
 
+    // We're going to accumulate to the force_ component of the atomic state, so
+    // zero before starting
+    state.zero_forces();
     // Evaluate forces at new positions
     forces.evaluate(state);
 
-    vel = state.vel(0);
-    force = state.force(0);
+    vel = state.vel();
+    force = state.force();
     // Advance velocity to full timestep
     for (std::size_t iatom = 0; iatom < state.num_atoms(); ++iatom) {
       double k = half_dt_ / state.atom_type(iatom)->mass();

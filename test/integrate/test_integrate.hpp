@@ -31,7 +31,7 @@ class TestIntegrateLennardJonesEquilibrium
 
  protected:
   std::unique_ptr<Integrator> integrator;
-  const double dt = 1E-15;
+  const double dt = 1;
 };
 
 #endif /* #ifndef __TYCHE_TEST_INTEGRATE_TEST_INTEGRATE_HPP */

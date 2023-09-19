@@ -55,7 +55,7 @@ class AtomicState {
     for (const auto& atom_type : atom_types_) {
       if (!num_atoms_.count(atom_type)) {
         num_atoms_.insert({atom_type, 0});
-	atom_type_idx_.insert({atom_type, num_atom_types++});
+        atom_type_idx_.insert({atom_type, num_atom_types++});
       }
       num_atoms_.at(atom_type) += 1;
     }
@@ -92,7 +92,7 @@ class AtomicState {
    * @param iatom The index of the atom.
    * @return Constant iterator to atom's positional information.
    */
-  const Tensor<double, 2>::const_iterator pos(std::size_t iatom) const {
+  const Tensor<double, 2>::const_iterator pos(std::size_t iatom = 0) const {
     return pos_.begin() + 3 * iatom;
   }
 
@@ -101,7 +101,7 @@ class AtomicState {
    * @param iatom The index of the atom.
    * @return Iterator to atom's positional information.
    */
-  Tensor<double, 2>::iterator pos(std::size_t iatom) {
+  Tensor<double, 2>::iterator pos(std::size_t iatom = 0) {
     return pos_.begin() + 3 * iatom;
   }
 
@@ -110,7 +110,7 @@ class AtomicState {
    * @param iatom The index of the atom.
    * @return Constant iterator to atom's velocity information.
    */
-  const Tensor<double, 2>::const_iterator vel(std::size_t iatom) const {
+  const Tensor<double, 2>::const_iterator vel(std::size_t iatom = 0) const {
     return vel_.begin() + 3 * iatom;
   }
 
@@ -119,7 +119,7 @@ class AtomicState {
    * @param iatom The index of the atom.
    * @return Iterator to atom's velocity information.
    */
-  Tensor<double, 2>::iterator vel(std::size_t iatom) {
+  Tensor<double, 2>::iterator vel(std::size_t iatom = 0) {
     return vel_.begin() + 3 * iatom;
   }
 
@@ -128,7 +128,7 @@ class AtomicState {
    * @param iatom The index of the atom.
    * @return Constant iterator to atom's force information.
    */
-  const Tensor<double, 3>::const_iterator force(std::size_t iatom) const {
+  const Tensor<double, 3>::const_iterator force(std::size_t iatom = 0) const {
     return force_.begin() + 3 * iatom;
   }
 
@@ -137,9 +137,14 @@ class AtomicState {
    * @param iatom The index of the atom.
    * @return Iterator to atom's force information.
    */
-  Tensor<double, 3>::iterator force(std::size_t iatom) {
+  Tensor<double, 3>::iterator force(std::size_t iatom = 0) {
     return force_.begin() + 3 * iatom;
   }
+
+  /**
+   * @brief Zero the tensor containing atomic forces.
+   */
+  void zero_forces() { force_.zero(); }
 
   /**
    * @brief Return atom type corresponding to given atom index.
@@ -151,7 +156,7 @@ class AtomicState {
   }
 
   std::map<std::shared_ptr<AtomType>, std::size_t> atom_type_idx_;
-  
+
  private:
   bool needs_velocity_, needs_force_;
   std::map<std::shared_ptr<AtomType>, std::size_t> num_atoms_;

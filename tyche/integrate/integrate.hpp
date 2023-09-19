@@ -21,7 +21,7 @@ class Integrate {
  public:
   /**
    * @brief Class constructor.
-   * @param dt Time increment for simulation step.
+   * @param dt Time increment for simulation step in femtoseconds.
    */
   Integrate(double dt) : dt_{dt} {}
 

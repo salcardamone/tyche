@@ -48,8 +48,8 @@ class LennardJones : public Force {
   virtual double evaluate(AtomicState& state) {
     double pot = 0;
 
-    Tensor<double, 2>::const_iterator iatom_pos = state.pos(0);
-    Tensor<double, 2>::iterator iatom_force = state.force(0);
+    Tensor<double, 2>::const_iterator iatom_pos = state.pos();
+    Tensor<double, 2>::iterator iatom_force = state.force();
 
     for (std::size_t iatom = 0; iatom < state.num_atoms(); ++iatom) {
       auto iatom_type = state.atom_type(iatom);
@@ -66,7 +66,6 @@ class LennardJones : public Force {
 
         double dx_sq = dx * dx, dy_sq = dy * dy, dz_sq = dz * dz;
         double rsq = dx_sq + dy_sq + dz_sq;
-        double r = std::sqrt(rsq);
 
         std::size_t type_idx =
             atom_type_idx_[iatom_type] * atom_type_idx_.size() +
@@ -80,7 +79,7 @@ class LennardJones : public Force {
 
         pot += 4 * eps * (A - B);
 
-        double f_tmp = -(24 * eps / r) * (2 * A - B);
+        double f_tmp = (24 * eps / rsq) * (2 * A - B);
         double fx = f_tmp * dx, fy = f_tmp * dy, fz = f_tmp * dz;
 
         *iatom_force++ += fx;
