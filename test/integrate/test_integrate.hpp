@@ -9,6 +9,8 @@
 // Third-Party Libraries
 //
 // Project Inclusions
+#include "tyche/cell.hpp"
+#include "tyche/integrate/integrate.hpp"
 #include "test/force/test_lennard_jones.hpp"
 
 using namespace tyche;
@@ -22,15 +24,27 @@ class TestIntegrateLennardJonesEquilibrium
     : public TestLennardJonesEquilibrium {
  public:
   /**
-   * @brief
+   * @brief Initialise the fixture with a simulation cell.
+   */
+  void SetUp(std::shared_ptr<Cell> input_cell) {
+    TestLennardJonesEquilibrium::SetUp();
+    integrator = std::make_unique<Integrator>(dt);
+    cell = input_cell;
+  }
+
+  /**
+   * @brief Initialise the fixture and create an unbounded simulation cell by
+   * default.
    */
   void SetUp() {
     TestLennardJonesEquilibrium::SetUp();
     integrator = std::make_unique<Integrator>(dt);
+    cell = std::make_shared<UnboundedCell>();
   }
 
  protected:
   std::unique_ptr<Integrator> integrator;
+  std::shared_ptr<Cell> cell;
   const double dt = 1;
 };
 

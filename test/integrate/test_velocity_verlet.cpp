@@ -21,17 +21,18 @@ class TestVelocityVerlet
     : public TestIntegrateLennardJonesEquilibrium<VelocityVerlet> {};
 
 /**
- * @brief
+ * @brief Make sure the Argon dimer initialised at Lennard-Jones equilibrium
+ * doesn't deviate appreciably from start position.
  */
-TEST_F(TestVelocityVerlet, QQ) {
-  AtomicStateWriter writer(std::filesystem::path("/tmp/tmp.xyz"));
-
-  *atomic_state.pos(0) = 2;
+TEST_F(TestVelocityVerlet, StationaryEquilibrium) {
   lj->evaluate(atomic_state);
 
-  const std::size_t num_steps = std::size_t(1E8), out_freq = std::size_t(1E6);
+  const std::size_t num_steps = std::size_t(1E5);
   for (std::size_t istep = 0; istep < num_steps; ++istep) {
-    integrator->step(atomic_state, *lj);
-    if (!(istep % out_freq)) writer.add(atomic_state, "Argon Dimer");
+    integrator->step(atomic_state, *lj, cell);
+    ASSERT_NEAR(*atomic_state.pos(0), rij_min, 1E-15);
+    ASSERT_NEAR(*atomic_state.pos(1), 0.0, 1E-15);
+    ASSERT_NEAR(*atomic_state.vel(0), 0.0, 1E-15);
+    ASSERT_NEAR(*atomic_state.vel(1), 0.0, 1E-15);
   }
 }

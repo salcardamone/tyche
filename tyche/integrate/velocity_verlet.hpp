@@ -9,6 +9,7 @@
 // Third-Party Libraries
 //
 // Project Inclusions
+#include "tyche/cell.hpp"
 #include "tyche/atomic_state.hpp"
 #include "tyche/force/lennard_jones.hpp"
 #include "tyche/integrate/integrate.hpp"
@@ -36,8 +37,10 @@ class VelocityVerlet : public Integrate {
    *
    * @param state The atomic state to propagate forwards.
    * @param forces The force evaluation object.
+   * @param cell The simulation cell for periodic boundary conditions.
    */
-  void step(AtomicState& state, LennardJones& forces) override final {
+  void step(AtomicState& state, LennardJones& forces,
+            std::shared_ptr<Cell> cell) override final {
     Tensor<double, 2>::iterator pos = state.pos(), vel = state.vel();
     Tensor<double, 2>::const_iterator force = state.force();
 
@@ -46,8 +49,10 @@ class VelocityVerlet : public Integrate {
       double k = half_dt_ / state.atom_type(iatom)->mass();
       for (std::size_t idim = 0; idim < 3; ++idim) {
         *vel += k * *force++;
-        *pos++ += *vel++ * dt_;
+        pos[idim] += *vel++ * dt_;
       }
+      cell->pbc(pos[0], pos[1], pos[2]);
+      pos += 3;
     }
 
     // We're going to accumulate to the force_ component of the atomic state, so

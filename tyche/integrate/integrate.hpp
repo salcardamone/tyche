@@ -9,6 +9,7 @@
 // Third-Party Libraries
 //
 // Project Inclusions
+#include "tyche/cell.hpp"
 #include "tyche/atomic_state.hpp"
 #include "tyche/force/lennard_jones.hpp"
 
@@ -30,8 +31,10 @@ class Integrate {
    * simulation forward by the time increment.
    * @param state The atomic state to propagate forwards.
    * @param forces The force evaluation object.
+   * @param cell The simulation cell for periodic boundary conditions.
    */
-  virtual void step(AtomicState& state, LennardJones& forces) = 0;
+  virtual void step(AtomicState& state, LennardJones& forces,
+                    std::shared_ptr<Cell> cell) = 0;
 
  protected:
   double dt_;

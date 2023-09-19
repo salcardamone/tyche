@@ -34,6 +34,28 @@ class Cell {
 };
 
 /**
+ * @brief Unbounded cell specialisation of the simulation cell.
+ */
+class UnboundedCell : public Cell {
+ public:
+  /**
+   * @brief Return the volume of the cell.
+   * @return The volume of the cell. Dummy value of zero since cell is
+   * unbounded.
+   */
+  double volume() const { return 0; }
+
+  /**
+   * @brief Apply periodic-boundary conditions to a position vector. Unbounded
+   * cell does nothing here; just return without modifying.
+   * @param x x-coordinate of the input position vector.
+   * @param y y-coordinate of the input position vector.
+   * @param z z-coordinate of the input position vector.
+   */
+  void pbc(double &x, double &y, double &z) const { return; }
+};
+
+/**
  * @brief Cubic cell specialisation of the simulation cell.
  */
 class CubicCell : public Cell {
