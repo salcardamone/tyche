@@ -102,10 +102,8 @@ class Tensor {
   /**
    * @brief Zero the contents of the Tensor.
    */
-  void zero() {
-    std::fill(data_.begin(), data_.end(), 0);
-  }
-  
+  void zero() { std::fill(data_.begin(), data_.end(), 0); }
+
   /**
    * @brief Return iterator to beginning of data_ member.
    * @return Iterator to beginning of data_member.
@@ -226,6 +224,79 @@ class Tensor {
       std::copy(other.begin() + irow * other.size(1),
                 other.begin() + (irow + 1) * other.size(1), start_it);
     }
+  }
+
+  /**
+   * @brief Compute the inner product in a 2D Tensor between either rows or
+   * columns.
+   * @tparam Dim The dimension we're indexing into; when Dim = 0, this
+   * corresponds to the slowest changing dimension, i.e. the rows, while when
+   * Dim = NumDims - 1, it corresponds to the fastest changing dimension, i.e.
+   * the columns.
+   * @param idx Index into the appropriate dimension to extract the first vector
+   * from the Tensor.
+   * @param jdx Index into the appropriate dimension to extract the second
+   * vector from the Tensor.
+   * @return The inner product between the two vectors.
+   */
+  template <std::size_t Dim>
+  DataType inner_product(std::size_t idx, std::size_t jdx) {
+    static_assert(NumDims == 2,
+                  "Inner product requires the tensor dimensionality by two.");
+    constexpr std::size_t inverted_dim = NumDims - 1 - Dim;
+    // Stride to move to the next vector along specified dimension
+    const std::size_t stride = stride_[Dim];
+    // Increment to move to the next element along the specified dimension
+    const std::size_t incr = stride_[inverted_dim];
+
+    double dot = 0;
+    const_iterator i_it = begin() + idx * stride, j_it = begin() + jdx * stride;
+    for (std::size_t kdx = 0; kdx < size(inverted_dim); ++kdx) {
+      dot += *i_it * *j_it;
+      i_it += incr;
+      j_it += incr;
+    }
+    return dot;
+  }
+
+  /**
+   * @brief Compute the inner product between vectors in two 2D Tensors.
+   * @tparam DimA The dimension we're indexing into for the first tensor.
+   * @tparam DimB The dimension we're indexing into for the second tensor.
+   * @param tensor_a The first Tensor.
+   * @param tensor_b The second Tensor.
+   * @param a_idx Index into the appropriate dimension to extract the vector
+   * from the first Tensor.
+   * @param b_idx Index into the appropriate dimension to extract the vector
+   * from the second Tensor.
+   * @return The inner product between the two vectors.
+   */
+  template <std::size_t DimA, std::size_t DimB>
+  static DataType inner_product(Tensor<DataType, NumDims>& tensor_a,
+                                Tensor<DataType, NumDims>& tensor_b,
+                                std::size_t a_idx, std::size_t b_idx) {
+    static_assert(NumDims == 2,
+                  "Inner product requires the tensor dimensionality by two.");
+    constexpr std::size_t inverted_dim_a = NumDims - 1 - DimA;
+    constexpr std::size_t inverted_dim_b = NumDims - 1 - DimB;
+    assert(tensor_a.size(inverted_dim_a) == tensor_b.size(inverted_dim_b));
+
+    const std::size_t stride_a = tensor_a.stride_[DimA],
+                      incr_a = tensor_a.stride_[inverted_dim_a];
+    const std::size_t stride_b = tensor_b.stride_[DimB],
+                      incr_b = tensor_b.stride_[inverted_dim_b];
+
+    double dot = 0;
+    const_iterator a_it = tensor_a.begin() + a_idx * stride_a;
+    const_iterator b_it = tensor_b.begin() + b_idx * stride_b;
+    for (std::size_t c_idx = 0; c_idx < tensor_a.size(inverted_dim_a);
+         ++c_idx) {
+      dot += *a_it * *b_it;
+      a_it += incr_a;
+      b_it += incr_b;
+    }
+
+    return dot;
   }
 
   /**

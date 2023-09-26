@@ -121,3 +121,75 @@ TEST(TensorTests, Concatenation) {
   ASSERT_EQ(tensor_a(2, 3), 8);
   ASSERT_EQ(tensor_a(2, 4), 9);
 }
+
+/**
+ * @brief Various inner product methods.
+ */
+TEST(TensorTests, InnerProduct) {
+
+  // Inner products within a single tensor
+  {
+    Tensor<double, 2> tensor(std::vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9}, 3,
+                             3);
+    // 1 * 4 + 2 * 5 + 3 * 6 = 4 + 10 + 18
+    ASSERT_EQ(tensor.inner_product<0>(0, 1), 32);
+    // 1 * 7 + 2 * 8 + 3 * 9 = 7 + 16 + 27
+    ASSERT_EQ(tensor.inner_product<0>(0, 2), 50);
+    // 4 * 7 + 5 * 8 + 6 * 9 = 28 + 40 + 54
+    ASSERT_EQ(tensor.inner_product<0>(1, 2), 122);
+
+    // 1 * 2 + 4 * 5 + 7 * 8 = 2 + 20 + 56
+    ASSERT_EQ(tensor.inner_product<1>(0, 1), 78);
+    // 1 * 3 + 4 * 6 + 7 * 9 = 3 + 24 + 63
+    ASSERT_EQ(tensor.inner_product<1>(0, 2), 90);
+    // 2 * 3 + 5 * 6 + 8 * 9 = 6 + 30 + 72
+    ASSERT_EQ(tensor.inner_product<1>(1, 2), 108);
+  }
+  
+  // Inner products between tensors
+  {
+    auto row_row = Tensor<double, 2>::inner_product<0, 0>;
+    auto col_col = Tensor<double, 2>::inner_product<1, 1>;
+    auto row_col = Tensor<double, 2>::inner_product<0, 1>;
+    auto col_row = Tensor<double, 2>::inner_product<1, 0>;
+
+    Tensor<double, 2> tensor_a(std::vector<double>{1, 3, 6, 4}, 2, 2);
+    Tensor<double, 2> tensor_b(std::vector<double>{2, 1, 7, 9}, 2, 2);
+
+    // 1 * 2 + 3 * 1 = 2 + 3
+    ASSERT_EQ((row_row(tensor_a, tensor_b, 0, 0)), 5);
+    // 1 * 7 + 3 * 9 = 7 + 27
+    ASSERT_EQ((row_row(tensor_a, tensor_b, 0, 1)), 34);
+    // 6 * 2 + 4 * 1 = 12 + 4
+    ASSERT_EQ((row_row(tensor_a, tensor_b, 1, 0)), 16);
+    // 6 * 7 + 4 * 9 = 42 + 36
+    ASSERT_EQ((row_row(tensor_a, tensor_b, 1, 1)), 78);
+
+    // 1 * 2 + 6 * 7 = 2 + 42
+    ASSERT_EQ((col_col(tensor_a, tensor_b, 0, 0)), 44);
+    // 1 * 1 + 6 * 9 = 1 + 54
+    ASSERT_EQ((col_col(tensor_a, tensor_b, 0, 1)), 55);
+    // 3 * 2 + 4 * 7 = 6 + 28
+    ASSERT_EQ((col_col(tensor_a, tensor_b, 1, 0)), 34);
+    // 3 * 1 + 4 * 9 = 3 + 36
+    ASSERT_EQ((col_col(tensor_a, tensor_b, 1, 1)), 39);
+
+    // 1 * 2 + 3 * 7 = 2 + 21
+    ASSERT_EQ((row_col(tensor_a, tensor_b, 0, 0)), 23);
+    // 1 * 1 + 3 * 9 = 1 + 27
+    ASSERT_EQ((row_col(tensor_a, tensor_b, 0, 1)), 28);
+    // 6 * 2 + 4 * 7 = 12 + 28
+    ASSERT_EQ((row_col(tensor_a, tensor_b, 1, 0)), 40);
+    // 6 * 1 + 4 * 9 = 6 + 36
+    ASSERT_EQ((row_col(tensor_a, tensor_b, 1, 1)), 42);
+
+    // 1 * 2 + 6 * 1 = 2 + 6
+    ASSERT_EQ((col_row(tensor_a, tensor_b, 0, 0)), 8);
+    // 1 * 7 + 6 * 9 = 7 + 54
+    ASSERT_EQ((col_row(tensor_a, tensor_b, 0, 1)), 61);
+    // 3 * 2 + 4 * 1 = 6 + 4
+    ASSERT_EQ((col_row(tensor_a, tensor_b, 1, 0)), 10);
+    // 3 * 7 + 4 * 9 = 21 + 36
+    ASSERT_EQ((col_row(tensor_a, tensor_b, 1, 1)), 57);
+  }
+}
