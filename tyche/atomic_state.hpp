@@ -128,7 +128,7 @@ class AtomicState {
    * @param iatom The index of the atom.
    * @return Constant iterator to atom's force information.
    */
-  const Tensor<double, 3>::const_iterator force(std::size_t iatom = 0) const {
+  const Tensor<double, 2>::const_iterator force(std::size_t iatom = 0) const {
     return force_.begin() + 3 * iatom;
   }
 
@@ -137,7 +137,7 @@ class AtomicState {
    * @param iatom The index of the atom.
    * @return Iterator to atom's force information.
    */
-  Tensor<double, 3>::iterator force(std::size_t iatom = 0) {
+  Tensor<double, 2>::iterator force(std::size_t iatom = 0) {
     return force_.begin() + 3 * iatom;
   }
 
@@ -191,7 +191,7 @@ class AtomicState {
   Tensor<double, 2> pos_, vel_, force_;
   std::vector<std::shared_ptr<AtomType>> atom_types_;
 };
-  
+
 }  // namespace tyche
 
 #endif /* #ifndef __TYCHE_ATOMIC_STATE_HPP */

@@ -20,13 +20,14 @@ using namespace tyche;
 class TestVelocityVerlet
     : public TestIntegrateLennardJonesEquilibrium<VelocityVerlet> {};
 
+class TestVV : public TestIntegrateLennardJonesCrystal<VelocityVerlet> {};
+
 /**
  * @brief Make sure the Argon dimer initialised at Lennard-Jones equilibrium
  * doesn't deviate appreciably from start position.
  */
 TEST_F(TestVelocityVerlet, StationaryEquilibrium) {
   forces.evaluate(atomic_state);
-
   const std::size_t num_steps = std::size_t(1E5);
   for (std::size_t istep = 0; istep < num_steps; ++istep) {
     integrator->step(atomic_state, forces, cell);
@@ -34,5 +35,15 @@ TEST_F(TestVelocityVerlet, StationaryEquilibrium) {
     ASSERT_NEAR(*atomic_state.pos(1), 0.0, 1E-15);
     ASSERT_NEAR(*atomic_state.vel(0), 0.0, 1E-15);
     ASSERT_NEAR(*atomic_state.vel(1), 0.0, 1E-15);
+  }
+}
+
+TEST_F(TestVV, QQ) {
+  AtomicStateWriter asw(std::filesystem::path("/tmp/tmp.xyz"));
+  forces.evaluate(atomic_state);
+  const std::size_t num_steps = std::size_t(1E6);
+  for (std::size_t istep = 0; istep < num_steps; ++istep) {
+    integrator->step(atomic_state, forces, cell);
+    if (!(istep % 1000)) asw.add(atomic_state, "Hello, world!");
   }
 }

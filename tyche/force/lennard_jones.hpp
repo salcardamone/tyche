@@ -45,8 +45,11 @@ class LennardJones : public Force {
    * @param state The atomic state we're computing the forces for.
    * @return The Lennard-Jones potential.
    */
-  virtual double evaluate(AtomicState& state) {
+  double evaluate(AtomicState& state) override {
     double pot = 0;
+
+    Tensor<double, 2>::iterator forces = state.force();
+    Tensor<double, 2>::const_iterator posns = state.pos();
 
     Tensor<double, 2>::const_iterator iatom_pos = state.pos();
     Tensor<double, 2>::iterator iatom_force = state.force();
@@ -60,9 +63,9 @@ class LennardJones : public Force {
       for (std::size_t jatom = iatom + 1; jatom < state.num_atoms(); ++jatom) {
         auto jatom_type = state.atom_type(jatom);
 
-        double dx = (*iatom_pos++ - *jatom_pos++);
-        double dy = (*iatom_pos++ - *jatom_pos++);
-        double dz = (*iatom_pos++ - *jatom_pos++);
+        double dx = (iatom_pos[0] - *jatom_pos++);
+        double dy = (iatom_pos[1] - *jatom_pos++);
+        double dz = (iatom_pos[2] - *jatom_pos++);
 
         double dx_sq = dx * dx, dy_sq = dy * dy, dz_sq = dz * dz;
         double rsq = dx_sq + dy_sq + dz_sq;
@@ -82,13 +85,16 @@ class LennardJones : public Force {
         double f_tmp = (24 * eps / rsq) * (2 * A - B);
         double fx = f_tmp * dx, fy = f_tmp * dy, fz = f_tmp * dz;
 
-        *iatom_force++ += fx;
+        iatom_force[0] += fx;
         *jatom_force++ -= fx;
-        *iatom_force++ += fy;
+        iatom_force[1] += fy;
         *jatom_force++ -= fy;
-        *iatom_force++ += fz;
+        iatom_force[2] += fz;
         *jatom_force++ -= fz;
       }
+
+      iatom_pos += 3;
+      iatom_force += 3;
     }
     return pot;
   }

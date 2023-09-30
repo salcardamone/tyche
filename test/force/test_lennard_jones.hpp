@@ -9,6 +9,7 @@
 // Third-Party Libraries
 //
 // Project Inclusions
+#include "test/base_fixtures/argon_box.hpp"
 #include "test/base_fixtures/argon_dimer.hpp"
 #include "tyche/force/lennard_jones.hpp"
 
@@ -34,6 +35,17 @@ class TestLennardJonesEquilibrium : public ArgonDimer {
 
  protected:
   double rij_min;
+  std::unique_ptr<LennardJones> lj;
+};
+
+class TestLennardJonesCrystal : public ArgonBox {
+public:
+  void SetUp(std::size_t num_atoms) {
+    ArgonBox::SetUp(num_atoms);
+    lj = std::make_unique<LennardJones>(atomic_state.atom_type_idx_);
+  }
+  
+protected:
   std::unique_ptr<LennardJones> lj;
 };
 

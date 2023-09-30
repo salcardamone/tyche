@@ -15,19 +15,37 @@
 
 using namespace tyche;
 
+template <typename Integrator, class LennardJonesSystem>
+class TestIntegrateLennardJones : public LennardJonesSystem {
+ public:
+  template <class... Args>
+  void SetUp(Args... args) {
+    LennardJonesSystem::SetUp(args...);
+    forces.add(
+        [this](AtomicState& state) { return this->lj->evaluate(state); });
+    integrator = std::make_unique<Integrator>(dt);
+  }
+
+ protected:
+  Forces forces;
+  std::unique_ptr<Integrator> integrator;
+  const double dt = 1;
+};
+
 /**
  * @brief Test fixture for integrators using Lennard-Jones Argon dimer in
  * equilibrium configuration.
  */
 template <typename Integrator>
 class TestIntegrateLennardJonesEquilibrium
-    : public TestLennardJonesEquilibrium {
+    : public TestIntegrateLennardJones<Integrator,
+                                       TestLennardJonesEquilibrium> {
  public:
   /**
    * @brief Initialise the fixture with a simulation cell.
    */
   void SetUp(std::shared_ptr<Cell> input_cell) {
-    CommonSetUp();
+    TestIntegrateLennardJones<Integrator, TestLennardJonesEquilibrium>::SetUp();
     cell = input_cell;
   }
 
@@ -36,25 +54,24 @@ class TestIntegrateLennardJonesEquilibrium
    * default.
    */
   void SetUp() {
-    CommonSetUp();
+    TestIntegrateLennardJones<Integrator, TestLennardJonesEquilibrium>::SetUp();
     cell = std::make_shared<UnboundedCell>();
   }
 
  protected:
-  /**
-   * @brief Common setup needed across all SetUp methods.
-   */
-  void CommonSetUp() {
-    TestLennardJonesEquilibrium::SetUp();
-    forces.add(
-        [this](AtomicState& state) { return this->lj->evaluate(state); });
-    integrator = std::make_unique<Integrator>(dt);
+  std::shared_ptr<Cell> cell;
+};
+
+template <typename Integrator>
+class TestIntegrateLennardJonesCrystal
+    : public TestIntegrateLennardJones<Integrator, TestLennardJonesCrystal> {
+ public:
+  void SetUp() {
+    TestIntegrateLennardJones<Integrator, TestLennardJonesCrystal>::SetUp(
+        num_atoms);
   }
 
-  Forces forces;
-  std::unique_ptr<Integrator> integrator;
-  std::shared_ptr<Cell> cell;
-  const double dt = 1;
+  static constexpr std::size_t num_atoms = 64;
 };
 
 #endif /* #ifndef __TYCHE_TEST_INTEGRATE_TEST_INTEGRATE_HPP */
