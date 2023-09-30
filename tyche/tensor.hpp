@@ -240,7 +240,7 @@ class Tensor {
    * @return The inner product between the two vectors.
    */
   template <std::size_t Dim>
-  DataType inner_product(std::size_t idx, std::size_t jdx) {
+  DataType inner_product(std::size_t idx, std::size_t jdx) const {
     static_assert(NumDims == 2,
                   "Inner product requires the tensor dimensionality by two.");
     constexpr std::size_t inverted_dim = NumDims - 1 - Dim;
@@ -272,8 +272,8 @@ class Tensor {
    * @return The inner product between the two vectors.
    */
   template <std::size_t DimA, std::size_t DimB>
-  static DataType inner_product(Tensor<DataType, NumDims>& tensor_a,
-                                Tensor<DataType, NumDims>& tensor_b,
+  static DataType inner_product(const Tensor<DataType, NumDims>& tensor_a,
+                                const Tensor<DataType, NumDims>& tensor_b,
                                 std::size_t a_idx, std::size_t b_idx) {
     static_assert(NumDims == 2,
                   "Inner product requires the tensor dimensionality by two.");
