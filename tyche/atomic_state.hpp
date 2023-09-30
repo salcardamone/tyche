@@ -147,6 +147,34 @@ class AtomicState {
   void zero_forces() { force_.zero(); }
 
   /**
+   * @brief Compute the kinetic energy of either a single atom, or the entire
+   * atomic state.
+   * @param iatom Index of the atom to compute the kinetic energy for. If
+   * nullopt, then will compute sum of atomic kinetic energies.
+   * @return The kinetic energy requested.
+   */
+  double kinetic(std::optional<std::size_t> iatom = std::nullopt) {
+    if (iatom) {
+      return 0.5 * atom_types_[*iatom]->mass() *
+             vel_.inner_product<0>(*iatom, *iatom);
+    }
+
+    double kin = 0;
+    Tensor<double, 2>::const_iterator velocity = vel();
+    for (std::size_t jatom = 0; jatom < num_atoms(); ++jatom) {
+      kin += atom_types_[jatom]->mass() * vel_.inner_product<0>(jatom, jatom);
+      velocity += 3;
+    }
+    return 0.5 * kin;
+  }
+
+  /**
+   * @brief Compute the average kinetic energy across the atomic state.
+   * @return The average kinetic energy across the atomic state.
+   */
+  double average_kinetic() { return kinetic() / num_atoms(); }
+
+  /**
    * @brief Return atom type corresponding to given atom index.
    * @param iatom The index of the atom.
    * @return Shared pointer to the corresponding atom type.
@@ -163,7 +191,7 @@ class AtomicState {
   Tensor<double, 2> pos_, vel_, force_;
   std::vector<std::shared_ptr<AtomType>> atom_types_;
 };
-
+  
 }  // namespace tyche
 
 #endif /* #ifndef __TYCHE_ATOMIC_STATE_HPP */

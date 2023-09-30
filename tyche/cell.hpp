@@ -77,6 +77,11 @@ class CubicCell : public Cell {
   double volume() const { return length_ * length_ * length_; }
 
   /**
+   *
+   */
+  double length() const { return length_; }
+
+  /**
    * @brief Apply periodic-boundary conditions to a position vector. Origin is
    * at (0,0,0) and the cell is in the positive octant of the coordinate system.
    * @param x x-coordinate of the input position vector.
