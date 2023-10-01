@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 #include <spdlog/spdlog.h>
 // Project Inclusions
+#include "tyche/cell.hpp"
 #include "tyche/atom_type_reader.hpp"
 #include "tyche/atomic_state_reader.hpp"
 #include "tyche/force/lennard_jones.hpp"
@@ -21,7 +22,7 @@ using namespace tyche;
  */
 TEST_F(TestLennardJonesEquilibrium, PotentialAndForce) {
   // Potential at rmin should be -epsilon
-  double v_pot = lj->evaluate(atomic_state);
+  double v_pot = lj->evaluate(atomic_state, cell);
   ASSERT_EQ(-atom_types["Ar"]->eps_lj(), v_pot);
 
   // Forces between atoms should be zero

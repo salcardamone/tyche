@@ -38,14 +38,23 @@ class TestLennardJonesEquilibrium : public ArgonDimer {
   std::unique_ptr<LennardJones> lj;
 };
 
+/**
+ * @brief Lennard-Jones Argon crystal.
+ */
 class TestLennardJonesCrystal : public ArgonBox {
-public:
-  void SetUp(std::size_t num_atoms) {
-    ArgonBox::SetUp(num_atoms);
+ public:
+  /**
+   * @brief Initialise the crystal with some given number of atoms and density.
+   * @param num_atoms The number of atoms to initialise.
+   * @param density The density of Argon to use in kg/ litre. Optional; if not
+   * specified, will use the density at STP.
+   */
+  void SetUp(std::size_t num_atoms, std::optional<double> density) {
+    ArgonBox::SetUp(num_atoms, density);
     lj = std::make_unique<LennardJones>(atomic_state.atom_type_idx_);
   }
-  
-protected:
+
+ protected:
   std::unique_ptr<LennardJones> lj;
 };
 

@@ -15,28 +15,41 @@
 
 using namespace tyche;
 
-template <typename Integrator, class LennardJonesSystem>
+/**
+ * @brief Lennard-Jones system integrator.
+ * @tparam Integrator The integrator to use, deriving from Integrate.
+ * @tparam LennardJonesSystem The atomic system with Lennard-Jones evaluator.
+ */
+template <class Integrator, class LennardJonesSystem>
 class TestIntegrateLennardJones : public LennardJonesSystem {
  public:
+  
+  /**
+   * @brief Initialise the Lennard-Jones system integrator.
+   * @param args Variadic arguments to forward to the LennardJonesSystem::SetUp
+   * method.
+   */
   template <class... Args>
   void SetUp(Args... args) {
     LennardJonesSystem::SetUp(args...);
-    forces.add(
-        [this](AtomicState& state) { return this->lj->evaluate(state); });
+    forces.add([this](AtomicState& state, std::shared_ptr<Cell> cell) {
+      return this->lj->evaluate(state, cell);
+    });
     integrator = std::make_unique<Integrator>(dt);
   }
 
  protected:
   Forces forces;
   std::unique_ptr<Integrator> integrator;
-  const double dt = 1;
+  static constexpr double dt = 1;
 };
 
 /**
- * @brief Test fixture for integrators using Lennard-Jones Argon dimer in
- * equilibrium configuration.
+ * @brief Test fixture for integrator using the Lennard-Jones Argon dimer at
+ * equilibrium.
+ * @tparam Integrator The integrator to use, deriving from Integrate.
  */
-template <typename Integrator>
+template <class Integrator>
 class TestIntegrateLennardJonesEquilibrium
     : public TestIntegrateLennardJones<Integrator,
                                        TestLennardJonesEquilibrium> {
@@ -46,7 +59,7 @@ class TestIntegrateLennardJonesEquilibrium
    */
   void SetUp(std::shared_ptr<Cell> input_cell) {
     TestIntegrateLennardJones<Integrator, TestLennardJonesEquilibrium>::SetUp();
-    cell = input_cell;
+    this->cell = input_cell;
   }
 
   /**
@@ -55,23 +68,26 @@ class TestIntegrateLennardJonesEquilibrium
    */
   void SetUp() {
     TestIntegrateLennardJones<Integrator, TestLennardJonesEquilibrium>::SetUp();
-    cell = std::make_shared<UnboundedCell>();
   }
-
- protected:
-  std::shared_ptr<Cell> cell;
 };
 
-template <typename Integrator>
+/**
+ * @brief Test fixture for integrator using a Lennard-Jones Argon crystal.
+ * @tparam Integrator The integrator to use, deriving from Integrate.
+ */
+template <class Integrator>
 class TestIntegrateLennardJonesCrystal
     : public TestIntegrateLennardJones<Integrator, TestLennardJonesCrystal> {
  public:
-  void SetUp() {
+  /**
+   * @brief Initialise the fixture with some given number of atoms that'll be
+   * arranged into a crystal.
+   */
+  void SetUp(std::size_t num_atoms,
+             std::optional<double> density = std::nullopt) {
     TestIntegrateLennardJones<Integrator, TestLennardJonesCrystal>::SetUp(
-        num_atoms);
+        num_atoms, density);
   }
-
-  static constexpr std::size_t num_atoms = 64;
 };
 
 #endif /* #ifndef __TYCHE_TEST_INTEGRATE_TEST_INTEGRATE_HPP */

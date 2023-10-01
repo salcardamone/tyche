@@ -57,7 +57,7 @@ class VelocityVerlet : public Integrate {
     }
 
     // Evaluate forces at new positions
-    forces.evaluate(state);
+    forces.evaluate(state, cell);
 
     vel = state.vel();
     force = state.force();

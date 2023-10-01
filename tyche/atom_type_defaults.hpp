@@ -10,25 +10,9 @@
 // Third-party Libraries
 #include <toml++/toml.h>
 // Project Inclusions
-//
+#include "tyche/constants.hpp"
 
 namespace tyche {
-
-namespace constants {
-static constexpr double avogadro = 6.02214076E23;
-
-static constexpr double kg_to_dalton = 6.0221736E26;
-static constexpr double m_to_angstrom = 1E10;
-static constexpr double sec_to_fs = 1E15;
-
-static constexpr double kjmol_to_joule = 1000.0 / avogadro;
-static constexpr double ev_to_joule = 1.602176565E-19;
-
-// Energy is Mass Distance^2 / Time^2
-static constexpr double joule_to_internal =
-    kg_to_dalton * (m_to_angstrom * m_to_angstrom) / (sec_to_fs * sec_to_fs);
-static constexpr double ev_to_internal = ev_to_joule * joule_to_internal;
-}  // namespace constants
 
 // This maps from some typical atom type identifiers (the chemical element
 // symbol) to some basic parameters that we don't necessarily expect the user to

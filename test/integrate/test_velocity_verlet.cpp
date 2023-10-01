@@ -17,17 +17,22 @@ using namespace tyche;
  * @brief Specialisation of the TestIntegrateLennardJonesEquilibrium fixture
  * using the Velocity Verlet integrator.
  */
-class TestVelocityVerlet
+class TestVelocityVerletArgonDimer
     : public TestIntegrateLennardJonesEquilibrium<VelocityVerlet> {};
 
-class TestVV : public TestIntegrateLennardJonesCrystal<VelocityVerlet> {};
+/**
+ * @brief Specialisation of the TestIntegrateLennardJonesCrystal fixture using
+ * the Velocity Verlet integrator.
+ */
+class TestVelocityVerletArgonCrystal
+    : public TestIntegrateLennardJonesCrystal<VelocityVerlet> {};
 
 /**
  * @brief Make sure the Argon dimer initialised at Lennard-Jones equilibrium
  * doesn't deviate appreciably from start position.
  */
-TEST_F(TestVelocityVerlet, StationaryEquilibrium) {
-  forces.evaluate(atomic_state);
+TEST_F(TestVelocityVerletArgonDimer, StationaryEquilibrium) {
+  forces.evaluate(atomic_state, cell);
   const std::size_t num_steps = std::size_t(1E5);
   for (std::size_t istep = 0; istep < num_steps; ++istep) {
     integrator->step(atomic_state, forces, cell);
@@ -38,12 +43,16 @@ TEST_F(TestVelocityVerlet, StationaryEquilibrium) {
   }
 }
 
-TEST_F(TestVV, QQ) {
+TEST_F(TestVelocityVerletArgonCrystal, Test) {
+  SetUp(64, 1.784E-1);
   AtomicStateWriter asw(std::filesystem::path("/tmp/tmp.xyz"));
-  forces.evaluate(atomic_state);
-  const std::size_t num_steps = std::size_t(1E6);
+  forces.evaluate(atomic_state, cell);
+  const std::size_t num_steps = std::size_t(1E5);
   for (std::size_t istep = 0; istep < num_steps; ++istep) {
     integrator->step(atomic_state, forces, cell);
-    if (!(istep % 1000)) asw.add(atomic_state, "Hello, world!");
+    if (!(istep % (num_steps / 1000))) {
+      std::string tag("Frame ");
+      asw.add(atomic_state, tag + std::to_string(istep));
+    }
   }
 }

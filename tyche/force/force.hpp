@@ -9,6 +9,7 @@
 // Third-Party Libraries
 //
 // Project Inclusions
+#include "tyche/cell.hpp"
 #include "tyche/atomic_state.hpp"
 
 namespace tyche {
@@ -23,7 +24,7 @@ class Force {
    * @param state The atomic state for which we're calculating forces for.
    * @return The total energy associated with the forces.
    */
-  virtual double evaluate(AtomicState& state) = 0;
+  virtual double evaluate(AtomicState& state, std::shared_ptr<Cell> cell) = 0;
 };
 
 /**
@@ -36,14 +37,14 @@ class Forces : public Force {
    * @param state The atomic state.
    * @return The potential energy accumulated across all forces.
    */
-  double evaluate(AtomicState& state) override {
+  double evaluate(AtomicState& state, std::shared_ptr<Cell> cell) override {
     // We're going to accumulate to the force_ component of the atomic state, so
     // zero before starting
     state.zero_forces();
 
     double pot = 0;
     for (auto& force : forces_) {
-      pot += force(state);
+      pot += force(state, cell);
     }
     return pot;
   }
@@ -54,12 +55,13 @@ class Forces : public Force {
    * @param eval The function which takes an AtomicState object and return the
    * potential energy from the force evaluation.
    */
-  void add(std::function<double(AtomicState&)> eval) {
+  void add(std::function<double(AtomicState&, std::shared_ptr<Cell>)> eval) {
     forces_.push_back(eval);
   }
 
  private:
-  std::vector<std::function<double(AtomicState&)>> forces_;
+  std::vector<std::function<double(AtomicState&, std::shared_ptr<Cell>)>>
+      forces_;
 };
 
 }  // namespace tyche

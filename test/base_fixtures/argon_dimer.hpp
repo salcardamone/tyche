@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 #include <spdlog/spdlog.h>
 // Project Inclusions
+#include "tyche/cell.hpp"
 #include "tyche/atom_type_reader.hpp"
 #include "tyche/atomic_state_reader.hpp"
 
@@ -31,9 +32,12 @@ class ArgonDimer : public ::testing::Test {
 
     AtomicStateReader reader2(config);
     atomic_state = reader2.parse(atom_types, true, true);
+
+    cell = std::make_shared<UnboundedCell>();
   }
 
  protected:
+  std::shared_ptr<UnboundedCell> cell;
   std::map<std::string, std::shared_ptr<AtomType>> atom_types;
   AtomicState atomic_state;
 

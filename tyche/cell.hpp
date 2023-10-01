@@ -31,6 +31,8 @@ class Cell {
    * @param z z-coordinate of the input position vector.
    */
   virtual void pbc(double &x, double &y, double &z) const = 0;
+
+  virtual void min_image(double &x, double &y, double &z) const = 0;
 };
 
 /**
@@ -52,7 +54,11 @@ class UnboundedCell : public Cell {
    * @param y y-coordinate of the input position vector.
    * @param z z-coordinate of the input position vector.
    */
-  void pbc(double &x, double &y, double &z) const { return; }
+  void pbc(double &x, double &y, double &z) const override final { return; }
+
+  void min_image(double &x, double &y, double &z) const override final {
+    return;
+  }
 };
 
 /**
@@ -74,7 +80,7 @@ class CubicCell : public Cell {
    * @brief Return the volume of the cell.
    * @return The volume of the cell.
    */
-  double volume() const { return length_ * length_ * length_; }
+  double volume() const { return length() * length() * length(); }
 
   /**
    *
@@ -88,10 +94,16 @@ class CubicCell : public Cell {
    * @param y y-coordinate of the input position vector.
    * @param z z-coordinate of the input position vector.
    */
-  void pbc(double &x, double &y, double &z) const {
-    x -= std::floor(x / length_) * length_;
-    y -= std::floor(y / length_) * length_;
-    z -= std::floor(z / length_) * length_;
+  void pbc(double &x, double &y, double &z) const override final {
+    x -= std::floor(x / length()) * length();
+    y -= std::floor(y / length()) * length();
+    z -= std::floor(z / length()) * length();
+  }
+
+  void min_image(double &x, double &y, double &z) const override final {
+    x -= std::round(x / length()) * length();
+    y -= std::round(y / length()) * length();
+    z -= std::round(z / length()) * length();
   }
 
  private:
