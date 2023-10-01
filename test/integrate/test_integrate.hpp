@@ -9,7 +9,7 @@
 // Third-Party Libraries
 //
 // Project Inclusions
-#include "tyche/cell.hpp"
+#include "tyche/system/cell.hpp"
 #include "tyche/integrate/integrate.hpp"
 #include "test/force/test_lennard_jones.hpp"
 

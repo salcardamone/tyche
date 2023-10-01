@@ -10,7 +10,7 @@
 // Third-party Libraries
 #include <toml++/toml.h>
 // Project Inclusions
-#include "tyche/constants.hpp"
+#include "tyche/util/constants.hpp"
 
 namespace tyche {
 

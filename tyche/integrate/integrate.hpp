@@ -9,8 +9,8 @@
 // Third-Party Libraries
 //
 // Project Inclusions
-#include "tyche/cell.hpp"
-#include "tyche/atomic_state.hpp"
+#include "tyche/system/cell.hpp"
+#include "tyche/atom/atomic_state.hpp"
 #include "tyche/force/force.hpp"
 
 namespace tyche {

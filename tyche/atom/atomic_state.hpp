@@ -10,8 +10,8 @@
 // Third-Party Libraries
 #include <spdlog/spdlog.h>
 // Project Inclusions
-#include "tyche/tensor.hpp"
-#include "tyche/atom_type.hpp"
+#include "tyche/util/tensor.hpp"
+#include "tyche/atom/atom_type.hpp"
 
 namespace tyche {
 
@@ -79,7 +79,7 @@ class AtomicState {
    * across the atomic state.
    */
   std::size_t num_atoms(
-      std::optional<std::shared_ptr<AtomType>> atom_type = std::nullopt) {
+      std::optional<std::shared_ptr<AtomType>> atom_type = std::nullopt) const {
     return atom_type ? num_atoms_.at(*atom_type)
                      : std::accumulate(num_atoms_.begin(), num_atoms_.end(), 0,
                                        [](std::size_t value, auto& elem) {
@@ -153,7 +153,7 @@ class AtomicState {
    * nullopt, then will compute sum of atomic kinetic energies.
    * @return The kinetic energy requested.
    */
-  double kinetic(std::optional<std::size_t> iatom = std::nullopt) {
+  double kinetic(std::optional<std::size_t> iatom = std::nullopt) const {
     if (iatom) {
       return 0.5 * atom_types_[*iatom]->mass() *
              vel_.inner_product<0>(*iatom, *iatom);
@@ -172,22 +172,46 @@ class AtomicState {
    * @brief Compute the average kinetic energy across the atomic state.
    * @return The average kinetic energy across the atomic state.
    */
-  double average_kinetic() { return kinetic() / num_atoms(); }
+  double average_kinetic() const { return kinetic() / num_atoms(); }
 
   /**
    * @brief Return atom type corresponding to given atom index.
    * @param iatom The index of the atom.
    * @return Shared pointer to the corresponding atom type.
    */
-  std::shared_ptr<AtomType> atom_type(std::size_t iatom) {
+  std::shared_ptr<AtomType> atom_type(std::size_t iatom) const {
     return atom_types_[iatom];
   }
 
-  std::map<std::shared_ptr<AtomType>, std::size_t> atom_type_idx_;
+  /**
+   * @brief Retrieve the number of distinct atom types in the system
+   * @return The number of atom types.
+   */
+  std::size_t num_atom_types() const { return atom_types_.size(); }
+
+  /**
+   * @brief Get the mapping from atom type to unique index of the atom type,
+   * on [0,num_atom_types), which can be used for indexing into arrays that span
+   * the number of atom types.
+   * @return The map from atom type to unique index.
+   */
+  const std::map<std::shared_ptr<AtomType>, std::size_t>& atom_type_idx()
+      const {
+    return atom_type_idx_;
+  }
+
+  /**
+   * @brief Get the unique index associated with a particular atom type.
+   * @param atom_type The atom type to find the index of.
+   * @return The unique index of the atom type.
+   */
+  std::size_t atom_type_idx(std::shared_ptr<AtomType> atom_type) const {
+    return atom_type_idx_.at(atom_type);
+  }
 
  private:
   bool needs_velocity_, needs_force_;
-  std::map<std::shared_ptr<AtomType>, std::size_t> num_atoms_;
+  std::map<std::shared_ptr<AtomType>, std::size_t> num_atoms_, atom_type_idx_;
   Tensor<double, 2> pos_, vel_, force_;
   std::vector<std::shared_ptr<AtomType>> atom_types_;
 };

@@ -1,5 +1,5 @@
 tyche_lib = shared_library('tyche',
-  sources: ['atom_type.cpp'],
+  sources: ['atom/atom_type.cpp'],
   include_directories: tyche_include_dir,
   dependencies: [spdlog_dep]
 )

@@ -6,7 +6,7 @@
 // Third-Party Libraries
 #include <gtest/gtest.h>
 // Project Inclusions
-#include "tyche/tensor.hpp"
+#include "tyche/util/tensor.hpp"
 
 using namespace tyche;
 

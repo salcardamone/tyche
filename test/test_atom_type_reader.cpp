@@ -6,7 +6,7 @@
 // Third-Party Libraries
 #include <gtest/gtest.h>
 // Project Inclusions
-#include "tyche/atom_type_reader.hpp"
+#include "tyche/atom/atom_type_reader.hpp"
 
 using namespace tyche;
 using namespace std::string_view_literals;

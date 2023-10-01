@@ -7,9 +7,9 @@
 #include <gtest/gtest.h>
 #include <spdlog/spdlog.h>
 // Project Inclusions
-#include "tyche/cell.hpp"
-#include "tyche/atom_type_reader.hpp"
-#include "tyche/atomic_state_reader.hpp"
+#include "tyche/system/cell.hpp"
+#include "tyche/atom/atom_type_reader.hpp"
+#include "tyche/atom/atomic_state_reader.hpp"
 #include "tyche/force/lennard_jones.hpp"
 #include "test/force/test_lennard_jones.hpp"
 

@@ -6,7 +6,7 @@
 // Third-Party Libraries
 #include <gtest/gtest.h>
 // Project Inclusions
-#include "tyche/cell.hpp"
+#include "tyche/system/cell.hpp"
 
 using namespace tyche;
 

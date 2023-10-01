@@ -10,8 +10,8 @@
 // Third-Party Libraries
 //
 // Project Inclusions
-#include "tyche/tensor.hpp"
-#include "tyche/atomic_state.hpp"
+#include "tyche/util/tensor.hpp"
+#include "tyche/atom/atomic_state.hpp"
 
 namespace tyche {
 

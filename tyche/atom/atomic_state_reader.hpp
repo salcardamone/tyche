@@ -11,9 +11,9 @@
 #include <toml++/toml.h>
 #include <spdlog/spdlog.h>
 // Project Inclusions
-#include "tyche/tensor.hpp"
-#include "tyche/atom_type.hpp"
-#include "tyche/atomic_state.hpp"
+#include "tyche/util/tensor.hpp"
+#include "tyche/atom/atom_type.hpp"
+#include "tyche/atom/atomic_state.hpp"
 
 namespace tyche {
 
