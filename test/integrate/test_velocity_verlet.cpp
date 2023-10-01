@@ -45,14 +45,14 @@ TEST_F(TestVelocityVerletArgonDimer, StationaryEquilibrium) {
 
 TEST_F(TestVelocityVerletArgonCrystal, Test) {
   SetUp(64, 1.784E-1);
-  AtomicStateWriter asw(std::filesystem::path("/tmp/tmp.xyz"));
+  AtomicStateWriterXYZ xyz_writer(std::filesystem::path("/tmp/tmp.xyz"));
   forces.evaluate(atomic_state, cell);
   const std::size_t num_steps = std::size_t(1E5);
   for (std::size_t istep = 0; istep < num_steps; ++istep) {
     integrator->step(atomic_state, forces, cell);
     if (!(istep % (num_steps / 1000))) {
       std::string tag("Frame ");
-      asw.add(atomic_state, tag + std::to_string(istep));
+      xyz_writer.add(atomic_state, tag + std::to_string(istep));
     }
   }
 }
