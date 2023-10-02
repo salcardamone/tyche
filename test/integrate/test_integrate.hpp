@@ -32,9 +32,7 @@ class TestIntegrateLennardJones : public LennardJonesSystem {
   template <class... Args>
   void SetUp(Args... args) {
     LennardJonesSystem::SetUp(args...);
-    forces.add([this](AtomicState& state, std::shared_ptr<Cell> cell) {
-      return this->lj->evaluate(state, cell);
-    });
+    forces.add(std::move(LennardJonesSystem::lj));
     integrator = std::make_unique<Integrator>(dt);
   }
 

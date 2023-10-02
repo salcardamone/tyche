@@ -42,24 +42,3 @@ TEST_F(TestVelocityVerletArgonDimer, StationaryEquilibrium) {
     ASSERT_NEAR(*atomic_state.vel(1), 0.0, 1E-15);
   }
 }
-
-/*
-TEST_F(TestVelocityVerletArgonCrystal, Test) {
-  std::ofstream kinetic;
-  kinetic.open("/tmp/kinetic.txt");
-  SetUp(64, 1.784E-2);
-  AtomicStateWriterXYZ xyz_writer(std::filesystem::path("/tmp/tmp.xyz"));
-  forces.evaluate(atomic_state, cell);
-  const std::size_t num_steps = std::size_t(1E7);
-  for (std::size_t istep = 0; istep < num_steps; ++istep) {
-    integrator->step(atomic_state, forces, cell);
-    if (!(istep % (num_steps / 1000))) {
-      std::string tag("Frame ");
-      xyz_writer.add(atomic_state, tag + std::to_string(istep));
-      kinetic << atomic_state.average_kinetic() << '\t'
-              << forces.evaluate(atomic_state, cell) << '\n';
-    }
-  }
-  kinetic.close();
-}
-*/

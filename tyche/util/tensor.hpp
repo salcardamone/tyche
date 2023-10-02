@@ -9,7 +9,9 @@
 #include <vector>
 #include <numeric>
 #include <cassert>
+#include <sstream>
 #include <iostream>
+#include <optional>
 #include <functional>
 // Third-Party Libraries
 #include <spdlog/spdlog.h>

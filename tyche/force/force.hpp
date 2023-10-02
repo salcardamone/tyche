@@ -44,24 +44,23 @@ class Forces : public Force {
 
     double pot = 0;
     for (auto& force : forces_) {
-      pot += force(state, cell);
+      pot += force->evaluate(state, cell);
     }
     return pot;
   }
 
   /**
-   * @brief Add a force evaluation function to the iterable of other force
-   * evaluation functions already registered.
-   * @param eval The function which takes an AtomicState object and return the
-   * potential energy from the force evaluation.
+   * @brief Add a Force object to the iterable of other force objects already
+   * registered.
+   * @param force An object which derives from Force, i.e. it provides an
+   * evaluate method.
    */
-  void add(std::function<double(AtomicState&, std::shared_ptr<Cell>)> eval) {
-    forces_.push_back(eval);
+  void add(std::unique_ptr<Force> force) {
+    forces_.push_back(std::move(force));
   }
 
  private:
-  std::vector<std::function<double(AtomicState&, std::shared_ptr<Cell>)>>
-      forces_;
+  std::vector<std::unique_ptr<Force>> forces_;
 };
 
 }  // namespace tyche

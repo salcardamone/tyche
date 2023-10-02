@@ -31,11 +31,11 @@ class ForceFactory {
    */
   static std::unique_ptr<Force> create(
       std::string type,
-      std::map<std::shared_ptr<AtomType>, std::size_t>& atom_types) {
+      const std::map<std::shared_ptr<AtomType>, std::size_t>& atom_types) {
     std::unique_ptr<Force> force;
     spdlog::info("Creating force of type: {}", type);
     if (type == "LennardJones") {
-      force = std::make_unique<LennardJones>(atom_types);
+      force = std::move(std::make_unique<LennardJones>(atom_types));
     } else {
       throw std::runtime_error("Unrecognised force: " + type);
     }

@@ -36,6 +36,12 @@ class Integrate {
   virtual void step(AtomicState& state, Forces& forces,
                     std::shared_ptr<Cell> cell) = 0;
 
+  /**
+   * @brief Getter for the time increment of the integrator.
+   * @return The time increment.
+   */
+  double dt() const { return dt_; }
+
  protected:
   double dt_;
 };
