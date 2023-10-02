@@ -26,4 +26,4 @@ test('test_cell', test_cell)
 
 subdir('force')
 subdir('integrate')
-
+subdir('simulation')
