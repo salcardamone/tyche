@@ -76,9 +76,6 @@ class MolecularDynamicsBuilder {
   MolecularDynamicsBuilder& forces(toml::array forces) {
     for (auto& val : forces) {
       auto force_config = *val.as_table();
-      // TODO: The fact we can list additional parameters for a force is a bit
-      // redundant given we're using a factory pattern for the forces. We need
-      // some way to provide additional arguments if required.
       std::unique_ptr<Force> force =
           ForceFactory::create(*force_config["type"].value<std::string>(),
                                simulation_.atomic_state_->atom_type_idx());

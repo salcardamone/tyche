@@ -24,18 +24,20 @@ class ForceFactory {
  public:
   /**
    * @brief Create something that derives from Force.
+   * @tparam Args Variadic types of arguments to be forwarded onto the
+   * appropriate child Force constructor.
    * @param type The type of the force to create.
-   * @param atom_types Mapping from atom type to unique index of that atom type
-   * from [0,num_atom_types).
+   * @param args The remaining arguments to be forwarded onto the appropriate
+   * child Force constructor.
    * @return The force.
    */
-  static std::unique_ptr<Force> create(
-      std::string type,
-      const std::map<std::shared_ptr<AtomType>, std::size_t>& atom_types) {
+  template <typename... Args>
+  static std::unique_ptr<Force> create(std::string type, Args&&... args) {
     std::unique_ptr<Force> force;
     spdlog::info("Creating force of type: {}", type);
     if (type == "LennardJones") {
-      force = std::move(std::make_unique<LennardJones>(atom_types));
+      force = std::move(
+          std::make_unique<LennardJones>(std::forward<Args>(args)...));
     } else {
       throw std::runtime_error("Unrecognised force: " + type);
     }
