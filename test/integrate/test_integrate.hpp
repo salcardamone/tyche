@@ -23,7 +23,6 @@ using namespace tyche;
 template <class Integrator, class LennardJonesSystem>
 class TestIntegrateLennardJones : public LennardJonesSystem {
  public:
-  
   /**
    * @brief Initialise the Lennard-Jones system integrator.
    * @param args Variadic arguments to forward to the LennardJonesSystem::SetUp
@@ -31,13 +30,14 @@ class TestIntegrateLennardJones : public LennardJonesSystem {
    */
   template <class... Args>
   void SetUp(Args... args) {
+    forces = std::make_unique<Forces>();
     LennardJonesSystem::SetUp(args...);
-    forces.add(std::move(LennardJonesSystem::lj));
+    forces->add(std::move(LennardJonesSystem::lj));
     integrator = std::make_unique<Integrator>(dt);
   }
 
  protected:
-  Forces forces;
+  std::unique_ptr<Forces> forces;
   std::unique_ptr<Integrator> integrator;
   static constexpr double dt = 1;
 };

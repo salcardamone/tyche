@@ -31,15 +31,16 @@ class ArgonDimer : public ::testing::Test {
     atom_types = reader.parse();
 
     AtomicStateReader reader2(config);
-    atomic_state = reader2.parse(atom_types, true, true);
+    atomic_state = std::make_shared<AtomicState>(
+        std::move(reader2.parse(atom_types, true, true)));
 
-    cell = std::make_shared<UnboundedCell>();
+    cell = std::make_unique<UnboundedCell>();
   }
 
  protected:
-  std::shared_ptr<UnboundedCell> cell;
+  std::unique_ptr<Cell> cell;
+  std::shared_ptr<AtomicState> atomic_state;
   std::map<std::string, std::shared_ptr<AtomType>> atom_types;
-  AtomicState atomic_state;
 
   static constexpr std::string_view toml = R"(
     [Atoms.Ar]

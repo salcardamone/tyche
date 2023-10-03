@@ -29,9 +29,9 @@ class ArgonBox : public ::testing::Test {
    * reduced to the closest cube number.
    * @param input_cell The cubic cell that's being used to confine the system.
    */
-  void SetUp(std::size_t num_atoms, std::shared_ptr<CubicCell> input_cell) {
+  void SetUp(std::size_t num_atoms, std::unique_ptr<CubicCell> input_cell) {
     std::size_t atoms_per_dim = CommonSetUp(num_atoms);
-    cell = input_cell;
+    cell = std::move(input_cell);
     InitialiseCrystal(atoms_per_dim);
   }
 
@@ -55,13 +55,13 @@ class ArgonBox : public ::testing::Test {
     // Choose cell length to match density of Argon
     double total_mass = num_atoms * atom_types["Ar"]->mass();
     double cell_length = std::pow(total_mass / density, 1. / 3.);
-    cell = std::make_shared<CubicCell>(cell_length);
+    cell = std::make_unique<CubicCell>(cell_length);
     InitialiseCrystal(atoms_per_dim);
   }
 
  protected:
-  std::shared_ptr<CubicCell> cell;
-  AtomicState atomic_state;
+  std::unique_ptr<CubicCell> cell;
+  std::shared_ptr<AtomicState> atomic_state;
   std::map<std::string, std::shared_ptr<AtomType>> atom_types;
 
   static constexpr std::string_view toml = R"(
@@ -82,7 +82,7 @@ class ArgonBox : public ::testing::Test {
     AtomTypeReader reader(config);
     atom_types = reader.parse();
 
-    atomic_state = AtomicState(true, true);
+    atomic_state = std::make_shared<AtomicState>(true, true);
 
     return std::floor(std::pow(num_atoms, 1. / 3.));
   }
@@ -118,7 +118,7 @@ class ArgonBox : public ::testing::Test {
         }
       }
     }
-    atomic_state.add(std::move(types), std::move(pos));
+    atomic_state->add(std::move(types), std::move(pos));
   }
 };
 

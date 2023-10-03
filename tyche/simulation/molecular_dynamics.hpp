@@ -40,9 +40,9 @@ class MolecularDynamics : public Simulation {
    * @brief Run the simulation as parameterised.
    */
   void run() override {
-    // forces_->evaluate(*atomic_state_, cell_);
+    forces_->evaluate(*atomic_state_, *cell_);
     for (std::size_t istep = 0; istep < num_steps_; ++istep) {
-      //  integrator_->step(*atomic_state_, forces_, cell_);
+      integrator_->step(*atomic_state_, *forces_, *cell_);
     }
   }
 

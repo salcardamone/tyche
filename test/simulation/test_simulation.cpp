@@ -29,7 +29,7 @@ static constexpr std::string_view basic_toml = R"(
     num_steps = 1E6
     integrator = "VelocityVerlet"
     timestep = 2
-    cell = { type = "CubicCell", length = 2.0 }
+    cell = { type = "Cubic", length = 2.0 }
     forces = [
         { type = "LennardJones" }
     ]

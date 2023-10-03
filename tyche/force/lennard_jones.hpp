@@ -46,7 +46,7 @@ class LennardJones : public Force {
    * @param state The atomic state we're computing the forces for.
    * @return The Lennard-Jones potential.
    */
-  double evaluate(AtomicState& state, std::shared_ptr<Cell> cell) override {
+  double evaluate(AtomicState& state, const Cell& cell) override {
     double pot = 0;
 
     Tensor<double, 2>::const_iterator iatom_pos = state.pos();
@@ -65,7 +65,7 @@ class LennardJones : public Force {
         double dy = (*jatom_pos++ - iatom_pos[1]);
         double dz = (*jatom_pos++ - iatom_pos[2]);
 
-        cell->min_image(dx, dy, dz);
+        cell.min_image(dx, dy, dz);
 
         double dx_sq = dx * dx, dy_sq = dy * dy, dz_sq = dz * dz;
         double rsq = dx_sq + dy_sq + dz_sq;

@@ -8,7 +8,9 @@
 #include <map>
 #include <memory>
 #include <cstring>
+#include <optional>
 // Third-Party Libraries
+#include <toml++/toml.h>
 #include <spdlog/spdlog.h>
 // Project Inclusions
 #include "tyche/atom/atom_type.hpp"
@@ -23,23 +25,27 @@ namespace tyche {
 class ForceFactory {
  public:
   /**
-   * @brief Create something that derives from Force.
-   * @tparam Args Variadic types of arguments to be forwarded onto the
-   * appropriate child Force constructor.
-   * @param type The type of the force to create.
-   * @param args The remaining arguments to be forwarded onto the appropriate
-   * child Force constructor.
+   * @brief Create something that derives from Force using an inline TOML table.
+   * @param force_config A TOML table with a "type" field naming the force to
+   * create, as well as any additional information to instantiate that force.
+   * @param atom_type Mapping from an atom type to a unique index from
+   * [0,num_atom_types) within the system under consideration.
    * @return The force.
    */
-  template <typename... Args>
-  static std::unique_ptr<Force> create(std::string type, Args&&... args) {
+  static std::unique_ptr<Force> create(
+      const toml::table& force_config,
+      const std::map<std::shared_ptr<AtomType>, std::size_t>& atom_type) {
+    auto type = force_config["type"].value<std::string>();
+    if (type == std::nullopt) {
+      throw std::runtime_error("Force type must be specified.");
+    }
+    spdlog::info("Creating force of type: {}", *type);
+
     std::unique_ptr<Force> force;
-    spdlog::info("Creating force of type: {}", type);
-    if (type == "LennardJones") {
-      force = std::move(
-          std::make_unique<LennardJones>(std::forward<Args>(args)...));
+    if (*type == "LennardJones") {
+      force = std::make_unique<LennardJones>(atom_type);
     } else {
-      throw std::runtime_error("Unrecognised force: " + type);
+      throw std::runtime_error("Unrecognised force: " + *type);
     }
     return force;
   }

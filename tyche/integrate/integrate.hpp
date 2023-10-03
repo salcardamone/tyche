@@ -33,8 +33,7 @@ class Integrate {
    * @param forces The force evaluation object.
    * @param cell The simulation cell for periodic boundary conditions.
    */
-  virtual void step(AtomicState& state, Forces& forces,
-                    std::shared_ptr<Cell> cell) = 0;
+  virtual void step(AtomicState& state, Forces& forces, const Cell& cell) = 0;
 
   /**
    * @brief Getter for the time increment of the integrator.

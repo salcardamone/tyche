@@ -40,7 +40,7 @@ class VelocityVerlet : public Integrate {
    * @param cell The simulation cell for periodic boundary conditions.
    */
   void step(AtomicState& state, Forces& forces,
-            std::shared_ptr<Cell> cell) override final {
+            const Cell& cell) override final {
     Tensor<double, 2>::iterator pos = state.pos(), vel = state.vel();
     Tensor<double, 2>::const_iterator force = state.force();
 
@@ -52,7 +52,7 @@ class VelocityVerlet : public Integrate {
         pos[idim] += *vel++ * dt_;
       }
       // Apply periodic boundary conditions
-      cell->pbc(pos[0], pos[1], pos[2]);
+      cell.pbc(pos[0], pos[1], pos[2]);
       pos += 3;
     }
 

@@ -38,6 +38,7 @@ class MolecularDynamicsReader {
         .integrator(toml_["integrator"].value<std::string>(),
                     toml_["timestep"].value<double>())
         .forces(*toml_["forces"].as_array())
+        .cell(*toml_["cell"].as_table())
         .build();
   }
 

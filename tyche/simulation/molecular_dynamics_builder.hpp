@@ -12,6 +12,7 @@
 #include <toml++/toml.h>
 // Project Inclusions
 #include "tyche/atom/atomic_state.hpp"
+#include "tyche/system/cell_factory.hpp"
 #include "tyche/force/force_factory.hpp"
 #include "tyche/integrate/integrate_factory.hpp"
 #include "tyche/simulation/molecular_dynamics.hpp"
@@ -73,14 +74,25 @@ class MolecularDynamicsBuilder {
    * well as any additional parameters that might be required.
    * @return The modified builder.
    */
-  MolecularDynamicsBuilder& forces(toml::array forces) {
+  MolecularDynamicsBuilder& forces(toml::array& forces) {
     for (auto& val : forces) {
-      auto force_config = *val.as_table();
-      std::unique_ptr<Force> force =
-          ForceFactory::create(*force_config["type"].value<std::string>(),
-                               simulation_.atomic_state_->atom_type_idx());
+      toml::table force_config = *val.as_table();
+      std::unique_ptr<Force> force = ForceFactory::create(
+          force_config, simulation_.atomic_state_->atom_type_idx());
       simulation_.forces_->add(std::move(force));
     }
+    return *this;
+  }
+
+  /**
+   * @brief Create a Cell for the MolecularDynamics object.
+   * @param cell_config TOML table with a "type" field naming the type of cell
+   * to instantiate, as well as any additional information required to
+   * instantiate the cell.
+   * @return The modified builder.
+   */
+  MolecularDynamicsBuilder& cell(toml::table& cell_config) {
+    simulation_.cell_ = std::move(CellFactory::create(cell_config));
     return *this;
   }
 
