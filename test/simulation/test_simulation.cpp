@@ -43,7 +43,6 @@ TEST(TestMolecularDynamicsReader, QQ) {
   AtomicStateReader reader2(config);
   auto atomic_state = std::make_shared<AtomicState>(reader2.parse(atom_types));
 
-  auto sim = SimulationFactory::create(
-      config["Simulation"]["type"].value_or<std::string>(""),
-      *config["Simulation"].as_table(), atomic_state);
+  auto sim =
+      SimulationFactory::create(*config["Simulation"].as_table(), atomic_state);
 }

@@ -24,20 +24,27 @@ class SimulationFactory {
  public:
   /**
    * @brief Create a simulation instance from a TOML configuration.
-   * @param type The type of simulation to instantiate.
    * @param config_table The "Simulation" node in the configuration.
+   * @param atomic_state The atomic state to be simulated.
    * @return Simulation instance.
    */
   static std::unique_ptr<Simulation> create(
-      std::string type, toml::table config_table,
+      const toml::table& simulation_config,
       std::shared_ptr<AtomicState> atomic_state) {
+    auto type = simulation_config["type"].value<std::string>();
+    if (type == std::nullopt) {
+      throw std::runtime_error("Simulation type must be specified.");
+    }
+    spdlog::info("Creating simulation of type: {}", *type);
+
     std::unique_ptr<Simulation> simulation;
-    if (type == "MolecularDynamics") {
+    if (*type == "MolecularDynamics") {
       MolecularDynamicsReader reader(
-          *config_table["MolecularDynamics"].as_table(), atomic_state);
-      simulation = std::make_unique<MolecularDynamics>(reader.parse());
+          *simulation_config["MolecularDynamics"].as_table(), atomic_state);
+      simulation =
+          std::make_unique<MolecularDynamics>(std::move(reader.parse()));
     } else {
-      throw std::runtime_error("Unrecognised simulation type: " + type);
+      throw std::runtime_error("Unrecognised simulation type: " + *type);
     }
     return simulation;
   }
