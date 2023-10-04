@@ -31,15 +31,17 @@ class MolecularDynamicsReader {
   /**
    * @brief Parse a MolecularDynamics configuration from TOML and return a new
    * MolecularDynamics instance.
-   * @param config_table The "MolecularDynamics" node of the TOML configuration.
+   * @param config The "MolecularDynamics" node of the TOML configuration.
    * @return A new MolecularDynamics instance.
    */
   MolecularDynamics parse(toml::table& config) {
-    return MolecularDynamics::create(atomic_state_)
-        .integrator(parse_table(*config["integrator"].as_table()))
-        .forces(*config["forces"].as_array())
-        .cell(parse_table(*config["cell"].as_table()))
-        .build();
+    auto builder = MolecularDynamics::create(atomic_state_);
+    builder.integrator(parse_table(*config["integrator"].as_table()));
+    builder.cell(parse_table(*config["cell"].as_table()));
+    for (auto force : parse_array_of_tables(*config["forces"].as_array())) {
+      builder.force(std::move(force));
+    }
+    return builder.build();
   }
 
  private:
@@ -52,6 +54,7 @@ class MolecularDynamicsReader {
    */
   std::map<std::string, std::any> parse_table(toml::table config) {
     std::map<std::string, std::any> mapping;
+
     config.for_each([&mapping](const toml::key& key, auto&& val) {
       std::string key_val(key.str());
       if constexpr (toml::is_number<decltype(val)>) {
@@ -61,6 +64,23 @@ class MolecularDynamicsReader {
       }
     });
     return mapping;
+  }
+
+  /**
+   * @brief Parse a TOML array of TOML tables into an interable of mappings from
+   * keys into their values.
+   * @param array The "MolecularDynamics.QQ" node of the TOML configuration.
+   * @return An iterable of mappings from keys to values. See the return type of
+   * MolecularDynamicsReader::parse_table for more details.
+   */
+  std::vector<std::map<std::string, std::any>> parse_array_of_tables(
+      toml::array array) {
+    std::vector<std::map<std::string, std::any>> mappings;
+
+    for (auto&& table : array) {
+      mappings.push_back(parse_table(*table.as_table()));
+    }
+    return mappings;
   }
 
   std::shared_ptr<AtomicState> atomic_state_;

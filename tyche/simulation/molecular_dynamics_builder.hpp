@@ -46,19 +46,13 @@ class MolecularDynamicsBuilder {
   }
 
   /**
-   * @brief Add force evaluation objects for the MolecularDynamics object.
-   * @param forces An array of inline tables, where each entry has a "type"
-   * field denoting the type of force to instantiate from the ForceFactory, as
-   * well as any additional parameters that might be required.
+   * @brief Set force evaluation object for the MolecularDynamics object.
+   * @param map Mapping containing force creation parameters.
    * @return The modified builder.
    */
-  MolecularDynamicsBuilder& forces(toml::array& forces) {
-    for (auto& val : forces) {
-      toml::table force_config = *val.as_table();
-      std::unique_ptr<Force> force = ForceFactory::create(
-          force_config, simulation_.atomic_state_->atom_type_idx());
-      simulation_.forces_->add(std::move(force));
-    }
+  MolecularDynamicsBuilder& force(std::map<std::string, std::any> map) {
+    simulation_.forces_->add(
+        ForceFactory::create(map, simulation_.atomic_state_->atom_type_idx()));
     return *this;
   }
 
