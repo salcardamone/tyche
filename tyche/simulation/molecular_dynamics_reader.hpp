@@ -5,7 +5,9 @@
 #define __TYCHE_SIMULATION_MOLECULAR_DYNAMICS_READER_HPP
 
 // C++ Standard Libraries
-//
+#include <any>
+#include <map>
+#include <cstring>
 // Third-Party Libraries
 #include <toml++/toml.h>
 // Project Inclusions
@@ -21,29 +23,46 @@ class MolecularDynamicsReader {
  public:
   /**
    * @brief Class constructor.
-   * @param config_table TOML config with a "MolecularDynamics" node.
+   * @param atomic_state The atomic state we're going to simulate.
    */
-  MolecularDynamicsReader(toml::table config_table,
-                          std::shared_ptr<AtomicState> atomic_state)
-      : toml_{config_table}, atomic_state_{atomic_state} {}
+  MolecularDynamicsReader(std::shared_ptr<AtomicState> atomic_state)
+      : atomic_state_{atomic_state} {}
 
   /**
    * @brief Parse a MolecularDynamics configuration from TOML and return a new
    * MolecularDynamics instance.
+   * @param config_table The "MolecularDynamics" node of the TOML configuration.
    * @return A new MolecularDynamics instance.
    */
-  MolecularDynamics parse() {
+  MolecularDynamics parse(toml::table& config) {
     return MolecularDynamics::create(atomic_state_)
-        .num_steps(toml_["num_steps"].value<std::size_t>())
-        .integrator(toml_["integrator"].value<std::string>(),
-                    toml_["timestep"].value<double>())
-        .forces(*toml_["forces"].as_array())
-        .cell(*toml_["cell"].as_table())
+        .integrator(parse_table(*config["integrator"].as_table()))
+        .forces(*config["forces"].as_array())
+        .cell(parse_table(*config["cell"].as_table()))
         .build();
   }
 
  private:
-  toml::table toml_;
+  /**
+   * @brief Parse a TOML table into a mapping from keys into their values.
+   * @param config The "MolecularDynamics.QQ" node of the TOML configuration.
+   * @return Mapping from keys to values. The values are std::any, either a
+   * string or double. Double is chosen for any numeric type because it can be
+   * coerced into an integer.
+   */
+  std::map<std::string, std::any> parse_table(toml::table config) {
+    std::map<std::string, std::any> mapping;
+    config.for_each([&mapping](const toml::key& key, auto&& val) {
+      std::string key_val(key.str());
+      if constexpr (toml::is_number<decltype(val)>) {
+        mapping[key_val] = static_cast<double>(val.get());
+      } else if constexpr (toml::is_string<decltype(val)>) {
+        mapping[key_val] = val.get();
+      }
+    });
+    return mapping;
+  }
+
   std::shared_ptr<AtomicState> atomic_state_;
 };
 

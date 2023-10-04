@@ -41,7 +41,7 @@ class MolecularDynamics : public Simulation {
    */
   void run() override {
     forces_->evaluate(*atomic_state_, *cell_);
-    for (std::size_t istep = 0; istep < num_steps_; ++istep) {
+    for (std::size_t istep = 0; istep < integrator_->num_steps(); ++istep) {
       integrator_->step(*atomic_state_, *forces_, *cell_);
     }
   }
@@ -56,7 +56,6 @@ class MolecularDynamics : public Simulation {
   friend MolecularDynamicsBuilder;
 
  private:
-  std::size_t num_steps_;
   std::shared_ptr<AtomicState> atomic_state_;
   std::unique_ptr<Cell> cell_;
   std::unique_ptr<Integrate> integrator_;

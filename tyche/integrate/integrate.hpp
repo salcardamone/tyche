@@ -5,7 +5,8 @@
 #define __TYCHE_INTEGRATE_INTEGRATE_HPP
 
 // C++ Standard Libraries
-//
+#include <cstdint>
+#include <optional>
 // Third-Party Libraries
 //
 // Project Inclusions
@@ -23,8 +24,10 @@ class Integrate {
   /**
    * @brief Class constructor.
    * @param dt Time increment for simulation step in femtoseconds.
+   * @param num_steps The number of integration steps to perform.
    */
-  Integrate(double dt) : dt_{dt} {}
+  Integrate(std::optional<double> dt, std::optional<std::size_t> num_steps)
+      : dt_{dt.value()}, num_steps_{num_steps.value()} {}
 
   /**
    * @brief Base virtual method to be overridden by all integrators. Step the
@@ -41,8 +44,15 @@ class Integrate {
    */
   double dt() const { return dt_; }
 
+  /**
+   * @brief Getter for the number of timesteps to integrate for.
+   * @return The number of timesteps.
+   */
+  std::size_t num_steps() const { return num_steps_; }
+
  protected:
   double dt_;
+  std::size_t num_steps_;
 };
 
 }  // namespace tyche

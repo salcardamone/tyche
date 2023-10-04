@@ -33,13 +33,14 @@ class TestIntegrateLennardJones : public LennardJonesSystem {
     forces = std::make_unique<Forces>();
     LennardJonesSystem::SetUp(args...);
     forces->add(std::move(LennardJonesSystem::lj));
-    integrator = std::make_unique<Integrator>(dt);
+    integrator = std::make_unique<Integrator>(dt, num_steps);
   }
 
  protected:
   std::unique_ptr<Forces> forces;
   std::unique_ptr<Integrator> integrator;
   static constexpr double dt = 1;
+  static constexpr std::size_t num_steps = 1E3;
 };
 
 /**

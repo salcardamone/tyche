@@ -37,33 +37,11 @@ class MolecularDynamicsBuilder {
 
   /**
    * @brief Set the integrator for the MolecularDynamics object.
-   * @param type The type of integrator to create; this is forwarded to the
-   * IntegrateFactory.
-   * @param dt The integration timestep.
+   * @param map Mapping containing integrator creation parameters.
    * @return The modified builder.
    */
-  MolecularDynamicsBuilder& integrator(std::optional<std::string>&& type,
-                                       std::optional<double>&& dt) {
-    if (type == std::nullopt || dt == std::nullopt) {
-      throw std::runtime_error(
-          "Setting the integrator for a MolecularDynamics object requires both "
-          "an integrator type and an integration timestep.");
-    }
-    simulation_.integrator_ = std::move(IntegrateFactory::create(*type, *dt));
-    return *this;
-  }
-
-  /**
-   * @brief Set the number of steps for molecular dynamics.
-   * @param num_steps The number of timesteps to set.
-   * @return The modified builder.
-   */
-  MolecularDynamicsBuilder& num_steps(std::optional<std::size_t>&& num_steps) {
-    if (num_steps == std::nullopt) {
-      throw std::runtime_error(
-          "Number of steps for molecular dynamics must be provided.");
-    }
-    simulation_.num_steps_ = *num_steps;
+  MolecularDynamicsBuilder& integrator(std::map<std::string, std::any> map) {
+    simulation_.integrator_ = std::move(IntegrateFactory::create(map));
     return *this;
   }
 
@@ -86,13 +64,11 @@ class MolecularDynamicsBuilder {
 
   /**
    * @brief Create a Cell for the MolecularDynamics object.
-   * @param cell_config TOML table with a "type" field naming the type of cell
-   * to instantiate, as well as any additional information required to
-   * instantiate the cell.
+   * @param map Mapping containing cell creation parameters.
    * @return The modified builder.
    */
-  MolecularDynamicsBuilder& cell(toml::table& cell_config) {
-    simulation_.cell_ = std::move(CellFactory::create(cell_config));
+  MolecularDynamicsBuilder& cell(std::map<std::string, std::any> map) {
+    simulation_.cell_ = std::move(CellFactory::create(map));
     return *this;
   }
 

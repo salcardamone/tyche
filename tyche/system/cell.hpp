@@ -6,6 +6,7 @@
 
 // C++ Standard Libraries
 #include <cmath>
+#include <optional>
 // Third-Party Libraries
 //
 // Project Inclusions
@@ -32,6 +33,12 @@ class Cell {
    */
   virtual void pbc(double &x, double &y, double &z) const = 0;
 
+  /**
+   * @brief Apply the minimum image convention to vector.
+   * @param x x-coordinate of the input vector.
+   * @param y y-coordinate of the input vector.
+   * @param z z-coordinate of the input vector.
+   */
   virtual void min_image(double &x, double &y, double &z) const = 0;
 };
 
@@ -56,6 +63,13 @@ class UnboundedCell : public Cell {
    */
   void pbc(double &x, double &y, double &z) const override final { return; }
 
+  /**
+   * @brief Apply the minimum image convention to vector. Unbounded cell does
+   * nothing here; just return without modifying.
+   * @param x x-coordinate of the input vector.
+   * @param y y-coordinate of the input vector.
+   * @param z z-coordinate of the input vector.
+   */
   void min_image(double &x, double &y, double &z) const override final {
     return;
   }
@@ -70,7 +84,7 @@ class CubicCell : public Cell {
    * @brief Class constructor.
    * @param length The length of each side of the cubic cell.
    */
-  CubicCell(double length) : length_(length) {
+  CubicCell(std::optional<double> length) : length_(length.value()) {
     if (length_ <= 0)
       throw std::runtime_error(
           "Cubic cell length must be strictly greater than zero.");
@@ -100,6 +114,12 @@ class CubicCell : public Cell {
     z -= std::floor(z / length()) * length();
   }
 
+  /**
+   * @brief Apply the minimum image convention to vector.
+   * @param x x-coordinate of the input vector.
+   * @param y y-coordinate of the input vector.
+   * @param z z-coordinate of the input vector.
+   */
   void min_image(double &x, double &y, double &z) const override final {
     x -= std::round(x / length()) * length();
     y -= std::round(y / length()) * length();

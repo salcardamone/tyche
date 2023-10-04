@@ -29,7 +29,7 @@ class SimulationFactory {
    * @return Simulation instance.
    */
   static std::unique_ptr<Simulation> create(
-      const toml::table& simulation_config,
+      toml::table simulation_config,
       std::shared_ptr<AtomicState> atomic_state) {
     auto type = simulation_config["type"].value<std::string>();
     if (type == std::nullopt) {
@@ -39,10 +39,9 @@ class SimulationFactory {
 
     std::unique_ptr<Simulation> simulation;
     if (*type == "MolecularDynamics") {
-      MolecularDynamicsReader reader(
-          *simulation_config["MolecularDynamics"].as_table(), atomic_state);
-      simulation =
-          std::make_unique<MolecularDynamics>(std::move(reader.parse()));
+      MolecularDynamicsReader reader(atomic_state);
+      simulation = std::make_unique<MolecularDynamics>(std::move(
+          reader.parse(*simulation_config["MolecularDynamics"].as_table())));
     } else {
       throw std::runtime_error("Unrecognised simulation type: " + *type);
     }

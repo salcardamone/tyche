@@ -26,10 +26,9 @@ static constexpr std::string_view basic_toml = R"(
     type = "MolecularDynamics"
 
     [Simulation.MolecularDynamics]
-    num_steps = 1E6
-    integrator = "VelocityVerlet"
-    timestep = 2
+    integrator = { type = "VelocityVerlet", timestep = 1.0, num_steps = 1E3 }
     cell = { type = "Cubic", length = 2.0 }
+    output = { format = "xyz", frequency = 1E3 }
     forces = [
         { type = "LennardJones" }
     ]
@@ -41,8 +40,14 @@ TEST(TestMolecularDynamicsReader, QQ) {
   AtomTypeReader reader(config);
   auto atom_types = reader.parse();
   AtomicStateReader reader2(config);
-  auto atomic_state = std::make_shared<AtomicState>(reader2.parse(atom_types));
+  auto atomic_state =
+      std::make_shared<AtomicState>(reader2.parse(atom_types, true, true));
 
-  auto sim =
-      SimulationFactory::create(*config["Simulation"].as_table(), atomic_state);
+  try {
+    auto sim = SimulationFactory::create(*config["Simulation"].as_table(),
+                                         atomic_state);
+    sim->run();
+  } catch (std::exception& err) {
+    spdlog::critical(err.what());
+  }
 }

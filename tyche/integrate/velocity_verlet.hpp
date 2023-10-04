@@ -5,7 +5,7 @@
 #define __TYCHE_INTEGRATE_VELOCITY_VERLET_HPP
 
 // C++ Standard Libraries
-//
+#include <cstdint>
 // Third-Party Libraries
 //
 // Project Inclusions
@@ -24,8 +24,10 @@ class VelocityVerlet : public Integrate {
   /**
    * @brief Class constructor.
    * @param dt Time increment for simulation step.
+   * @param num_steps Number of integration steps to run the simulation for.
    */
-  VelocityVerlet(double dt) : Integrate(dt), half_dt_{dt / 2} {}
+  VelocityVerlet(std::optional<double> dt, std::optional<std::size_t> num_steps)
+      : Integrate(dt, num_steps), half_dt_{dt_ / 2} {}
 
   /**
    * @brief Propagate the atomic state forwards by the time increment using the

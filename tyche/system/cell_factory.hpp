@@ -5,6 +5,7 @@
 #define __TYCHE_SYSTEM_CELL_FACTORY_HPP
 
 // C++ Standard Libraries
+#include <any>
 #include <memory>
 #include <cstring>
 #include <optional>
@@ -12,6 +13,7 @@
 #include <toml++/toml.h>
 #include <spdlog/spdlog.h>
 // Project Inclusions
+#include "tyche/util/maybe.hpp"
 #include "tyche/system/cell.hpp"
 
 namespace tyche {
@@ -26,25 +28,26 @@ class CellFactory {
    * @param cell_config Table of cell paramterisation.
    * @return The cell.
    */
-  static std::unique_ptr<Cell> create(toml::table cell_config) {
-    auto type = cell_config["type"].value<std::string>();
-    if (type == std::nullopt) {
-      throw std::runtime_error("Cell type must be specified.");
-    }
-    spdlog::info("Creating cell of type: {}", *type);
+  static std::unique_ptr<Cell> create(std::map<std::string, std::any> config) {
+    auto type = maybe_find<std::string>(config, "type");
+    spdlog::info("Creating cell of type: {}", type.value());
 
     std::unique_ptr<Cell> cell;
-    if (*type == "Unbounded") {
-      cell = std::make_unique<UnboundedCell>();
-    } else if (*type == "Cubic") {
-      auto length = cell_config["length"].value<double>();
-      if (length == std::nullopt) {
-        throw std::runtime_error("Length of cubic cell must be provided.");
+    try {
+      if (type.value() == "Unbounded") {
+        cell = std::make_unique<UnboundedCell>();
+      } else if (type.value() == "Cubic") {
+        // Note that although we're maybe finding doubles, they'll be coerced
+        // into optionals of the appropriate numeric type in the constructor
+        cell =
+            std::make_unique<CubicCell>(maybe_find<double>(config, "length"));
+      } else {
+        throw std::runtime_error("Unrecognised cell: " + type.value());
       }
-      cell = std::make_unique<CubicCell>(*length);
-    } else {
-      throw std::runtime_error("Unrecognised cell: " + *type);
+    } catch (std::bad_optional_access& err) {
+      throw std::runtime_error("Required cell parameters were not found.");
     }
+
     return cell;
   }
 };
