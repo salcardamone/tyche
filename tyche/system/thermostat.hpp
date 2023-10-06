@@ -6,6 +6,7 @@
 
 // C++ Standard Libraries
 #include <cmath>
+#include <random>
 // Third-Party Libraries
 //
 // Project Inclusions
@@ -36,6 +37,43 @@ class Thermostat {
     // kinetic energy into Joules
     return (2 * state.average_kinetic()) /
            (3 * constants::boltzmann * constants::joule_to_internal);
+  }
+
+  /**
+   *
+   */
+  static void initialise_velocities(AtomicState& state, double temp) {
+    std::vector<double> vel_com(3);
+
+    std::random_device rd;
+    std::mt19937 generator(rd());
+    std::uniform_real_distribution<double> distribution(-1.0, 1.0);
+
+    // Randomly initialise velocities from uniform distribution
+    Tensor<double, 2>::iterator vel = state.vel();
+    for (std::size_t iatom = 0; iatom < state.num_atoms(); ++iatom) {
+      for (std::size_t idim = 0; idim < 3; ++idim) {
+        *vel = distribution(generator);
+        vel_com[idim] += *vel++;
+      }
+    }
+
+    // Remove velocity of centre-of-mass of system
+    vel = state.vel();
+    for (std::size_t iatom = 0; iatom < state.num_atoms(); ++iatom) {
+      for (std::size_t idim = 0; idim < 3; ++idim) {
+        *vel++ -= vel_com[idim] / state.num_atoms();
+      }
+    }
+
+    // Rescale velocities to match desired temperature
+    double scale = std::sqrt(temp / temperature(state));
+    vel = state.vel();
+    for (std::size_t iatom = 0; iatom < state.num_atoms(); ++iatom) {
+      for (std::size_t idim = 0; idim < 3; ++idim) {
+        *vel++ *= scale;
+      }
+    }
   }
 
   /**
