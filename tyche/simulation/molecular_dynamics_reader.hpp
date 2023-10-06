@@ -41,6 +41,9 @@ class MolecularDynamicsReader {
     for (auto force : parse_array_of_tables(*config["forces"].as_array())) {
       builder.force(std::move(force));
     }
+    for (auto output : parse_array_of_tables(*config["output"].as_array())) {
+      builder.output(std::move(output));
+    }
     return builder.build();
   }
 

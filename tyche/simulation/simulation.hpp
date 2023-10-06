@@ -18,6 +18,8 @@ namespace tyche {
  */
 class Simulation {
  public:
+  virtual ~Simulation() {}
+
   /**
    * @brief Abstract run method to be implemented by children classes.
    */

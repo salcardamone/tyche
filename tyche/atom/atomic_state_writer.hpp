@@ -5,11 +5,14 @@
 #define __TYCHE_ATOMIC_STATE_WRITER_HPP
 
 // C++ Standard Libraries
-#include <fstream>
+#include <memory>
+#include <cstring>
+#include <optional>
 #include <filesystem>
 // Third-Party Libraries
 //
 // Project Inclusions
+#include "tyche/io/writer.hpp"
 #include "tyche/util/tensor.hpp"
 #include "tyche/atom/atomic_state.hpp"
 
@@ -18,13 +21,19 @@ namespace tyche {
 /**
  * @brief Abstract atomic state writer class to be overridden.
  */
-class AtomicStateWriter {
+class AtomicStateWriter : public Writer {
  public:
   /**
-   * @brief Add the atomic state to whatever is to be written.
-   * @param state The atomic state to write.
+   * @brief Class constructor.
+   * @param filename Writer output file.
+   * @param atomic_state The state we'll be writing.
    */
-  virtual void add(AtomicState& state) = 0;
+  AtomicStateWriter(std::filesystem::path filename,
+                    std::shared_ptr<AtomicState> atomic_state)
+      : Writer(filename), atomic_state_{atomic_state} {}
+
+ protected:
+  std::shared_ptr<AtomicState> atomic_state_;
 };
 
 /**
@@ -34,42 +43,29 @@ class AtomicStateWriterXYZ : public AtomicStateWriter {
  public:
   /**
    * @brief Class constructor.
-   * @param filename The path to the file we're writing to.
+   * @param filename The path to the .xyz file we're writing to.
+   * @param atomic_state The state we'll be writing.
    */
-  AtomicStateWriterXYZ(std::filesystem::path filename) : ofs_{filename} {
-    ofs_.setf(std::ios::fixed, std::ios::floatfield);
-  }
+  AtomicStateWriterXYZ(std::filesystem::path filename,
+                       std::shared_ptr<AtomicState> atomic_state)
+      : AtomicStateWriter(filename, atomic_state) {}
 
   /**
-   * @brief Class destructor.
+   * @brief Append the atomic state to the .xyz file.
+   * @param comment The comment that comes after the number of atoms in the .xyz
+   * file.
    */
-  ~AtomicStateWriterXYZ() { ofs_.close(); }
-
-  /**
-   * @brief Dump the atomic state to the .xyz file.
-   * @param state The atomic state to write.
-   */
-  void add(AtomicState& state) override {
-    Tensor<double, 2>::const_iterator pos = state.pos(0);
-    for (std::size_t iatom = 0; iatom < state.num_atoms(); ++iatom) {
-      ofs_ << state.atom_type(iatom)->id() << '\t' << *pos++ << '\t' << *pos++
-           << '\t' << *pos++ << '\n';
+  void write(std::optional<std::string> comment = std::nullopt) override {
+    ofs_ << atomic_state_->num_atoms() << '\n';
+    if (comment != std::nullopt) {
+      ofs_ << *comment << '\n';
+    }
+    Tensor<double, 2>::const_iterator pos = atomic_state_->pos(0);
+    for (std::size_t iatom = 0; iatom < atomic_state_->num_atoms(); ++iatom) {
+      ofs_ << atomic_state_->atom_type(iatom)->id() << '\t' << *pos++ << '\t'
+           << *pos++ << '\t' << *pos++ << '\n';
     }
   }
-
-  /**
-   * @brief Dump the atomic state as well as metadata to the .xyz.
-   * @param state The atomic state to write.
-   * @param comment The comment for the snapshot.
-   */
-  void add(AtomicState& state, std::string comment) {
-    ofs_ << state.num_atoms() << '\n';
-    ofs_ << comment << '\n';
-    add(state);
-  }
-
- private:
-  std::ofstream ofs_;
 };
 
 }  // namespace tyche

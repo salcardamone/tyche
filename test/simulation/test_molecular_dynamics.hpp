@@ -52,9 +52,11 @@ class TestMolecularDynamics : public ArgonBox {
     type = "MolecularDynamics"
 
     [Simulation.MolecularDynamics]
-    integrator = { type = "VelocityVerlet", timestep = 1.0, num_steps = 5E5 }
+    integrator = { type = "VelocityVerlet", timestep = 1.0, num_steps = 1E4 }
     cell = { type = "Cubic", length = 2.0 }
-    output = { format = "xyz", frequency = 1E3 }
+    output = [
+        { type = "xyz", frequency = 1E3, path = "/tmp/test_molecular_dynamics.xyz" }
+    ]
     forces = [
         { type = "LennardJones" }
     ]

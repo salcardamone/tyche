@@ -11,7 +11,9 @@
 // Third-Party Libraries
 #include <toml++/toml.h>
 // Project Inclusions
+#include "tyche/util/maybe.hpp"
 #include "tyche/atom/atomic_state.hpp"
+#include "tyche/io/writer_factory.hpp"
 #include "tyche/system/cell_factory.hpp"
 #include "tyche/force/force_factory.hpp"
 #include "tyche/integrate/integrate_factory.hpp"
@@ -63,6 +65,24 @@ class MolecularDynamicsBuilder {
    */
   MolecularDynamicsBuilder& cell(std::map<std::string, std::any> map) {
     simulation_.cell_ = std::move(CellFactory::create(map));
+    return *this;
+  }
+
+  /**
+   * @brief Create a Writer for the MolecularDynamics object.
+   * @param map Mapping containing writer creation parameters.
+   * @return The modified builder.
+   */
+  MolecularDynamicsBuilder& output(std::map<std::string, std::any> map) {
+    MolecularDynamics::WriterConfig writer_config;
+    writer_config.writer =
+        std::move(WriterFactory::create(map, simulation_.atomic_state_));
+    try {
+      writer_config.frequency = maybe_find<double>(map, "frequency").value();
+    } catch (std::bad_optional_access& err) {
+      throw std::runtime_error("Requested writer parameters were not found.");
+    }
+    simulation_.writers_.push_back(std::move(writer_config));
     return *this;
   }
 
