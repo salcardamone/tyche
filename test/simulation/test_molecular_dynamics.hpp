@@ -52,7 +52,6 @@ class TestMolecularDynamics : public ArgonBox {
     type = "MolecularDynamics"
 
     [Simulation.MolecularDynamics]
-    integrator = { type = "VelocityVerlet", timestep = 1.0, num_steps = 1E4 }
     cell = { type = "Cubic", length = 2.0 }
     output = [
         { type = "xyz", frequency = 1E3, path = "/tmp/test_molecular_dynamics.xyz" }
@@ -60,7 +59,14 @@ class TestMolecularDynamics : public ArgonBox {
     forces = [
         { type = "LennardJones" }
     ]
-  )"sv;
+
+    [Simulation.MolecularDynamics.Integrator]
+    type = "VelocityVerlet"
+    ensemble = "NVE"
+    control = { type = "Evans" }
+    timestep = 1.0
+    num_steps = 1E4
+)"sv;
 };
 
 #endif /* #ifndef __TYCHE_TEST_SIMULATION_MOLECULAR_DYNAMICS_HPP */

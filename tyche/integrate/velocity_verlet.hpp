@@ -41,11 +41,28 @@ class VelocityVerlet : public Integrate {
    * @param forces The force evaluation object.
    * @param cell The simulation cell for periodic boundary conditions.
    */
-  void step(AtomicState& state, Forces& forces,
-            const Cell& cell) override final {
+  virtual void step(AtomicState& state, Forces& forces, const Cell& cell) {
+    half_step_one(state, cell);
+    forces.evaluate(state, cell);
+    half_step_two(state, cell);
+  }
+
+ protected:
+  double half_dt_;
+
+  /**
+   * @brief Propagate the atomic state forwards by the time increment using
+   * forces at the current time increment:
+   *
+   * Step 1: v(t + dt/2) = v(t) + dt/2 * a(t)
+   * Step 2: r(t + dt) = r(t) + dt * v(t + dt/2)
+   *
+   * @param state The atomic state to propagate forwards.
+   * @param cell The simulation cell for periodic boundary conditions.
+   */
+  void half_step_one(AtomicState& state, const Cell& cell) {
     Tensor<double, 2>::iterator pos = state.pos(), vel = state.vel();
     Tensor<double, 2>::const_iterator force = state.force();
-
     // Advance velocity by half timestep and position by full timestep
     for (std::size_t iatom = 0; iatom < state.num_atoms(); ++iatom) {
       double k = half_dt_ / state.atom_type(iatom)->mass();
@@ -57,12 +74,20 @@ class VelocityVerlet : public Integrate {
       cell.pbc(pos[0], pos[1], pos[2]);
       pos += 3;
     }
+  }
 
-    // Evaluate forces at new positions
-    forces.evaluate(state, cell);
-
-    vel = state.vel();
-    force = state.force();
+  /**
+   * @brief Propagate the atomic state forwards by the time increment using
+   * forces at the next time increment:
+   *
+   * Step 3: v(t + dt) = v(t + dt/2) + dt/2 * a(t + dt)
+   *
+   * @param state The atomic state to propagate forwards.
+   * @param cell The simulation cell for periodic boundary conditions.
+   */
+  void half_step_two(AtomicState& state, const Cell& cell) {
+    Tensor<double, 2>::iterator vel = state.vel();
+    Tensor<double, 2>::const_iterator force = state.force();
     // Advance velocity to full timestep
     for (std::size_t iatom = 0; iatom < state.num_atoms(); ++iatom) {
       double k = half_dt_ / state.atom_type(iatom)->mass();
@@ -71,9 +96,6 @@ class VelocityVerlet : public Integrate {
       }
     }
   }
-
- protected:
-  double half_dt_;
 };
 
 }  // namespace tyche

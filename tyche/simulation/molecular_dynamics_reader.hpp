@@ -36,7 +36,7 @@ class MolecularDynamicsReader {
    */
   MolecularDynamics parse(toml::table& config) {
     auto builder = MolecularDynamics::create(atomic_state_);
-    builder.integrator(parse_table(*config["integrator"].as_table()));
+    builder.integrator(parse_table(*config["Integrator"].as_table()));
     builder.cell(parse_table(*config["cell"].as_table()));
     for (auto force : parse_array_of_tables(*config["forces"].as_array())) {
       builder.force(std::move(force));
