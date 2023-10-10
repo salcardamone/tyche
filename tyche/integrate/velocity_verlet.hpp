@@ -30,6 +30,15 @@ class VelocityVerlet : public Integrate {
       : Integrate(dt, num_steps), half_dt_{dt_ / 2} {}
 
   /**
+   * @brief Various post-construction initialisation tasks for the atomic state.
+   *
+   * For this case, atomic velocities will be initialised from the
+   * Maxwell-Boltzmann distribution at a given temperature.
+   * @param state The atomic state to initialise.
+   */
+  void initialise(AtomicState& state) {}
+  
+  /**
    * @brief Propagate the atomic state forwards by the time increment using the
    * Velocity Verlet method:
    *

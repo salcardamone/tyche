@@ -17,6 +17,7 @@
 #include "tyche/integrate/integrate.hpp"
 #include "tyche/force/force.hpp"
 #include "tyche/simulation/simulation.hpp"
+#include "tyche/system/thermostat.hpp"
 
 namespace tyche {
 
@@ -84,6 +85,8 @@ class MolecularDynamics : public Simulation {
     std::string comment = "Step " + std::to_string(istep);
     for (auto& writer : writers_) {
       if (!(istep % writer.frequency)) {
+        spdlog::info("Temperature at step {} : {}K", istep,
+                     Thermostat::temperature(*atomic_state_));
         writer.writer->write(comment);
       }
     }

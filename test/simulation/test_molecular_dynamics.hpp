@@ -62,10 +62,10 @@ class TestMolecularDynamics : public ArgonBox {
 
     [Simulation.MolecularDynamics.Integrator]
     type = "VelocityVerlet"
-    ensemble = "NVE"
-    control = { type = "Evans" }
+    ensemble = "NVT"
+    control = { type = "Evans", temperature = 300 }
     timestep = 1.0
-    num_steps = 1E4
+    num_steps = 1E6
 )"sv;
 };
 

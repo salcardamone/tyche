@@ -8,7 +8,7 @@
 #include <cmath>
 #include <random>
 // Third-Party Libraries
-//
+#include <spdlog/spdlog.h>
 // Project Inclusions
 #include "tyche/util/tensor.hpp"
 #include "tyche/util/constants.hpp"
@@ -28,21 +28,15 @@ class Thermostat {
   Thermostat(double temp) : temp_(temp) {}
 
   /**
-   * @brief Compute the kinetic temperature associated with the atomic state.
-   * @param state The atomic state to compute the kinetic temperature of.
-   * @return The kinetic temperature.
+   * @brief Initialise atomic velocities from Maxwell-Boltzmann distribution at
+   * parameterised temperatures.
+   * @param state The atomic state to initialise velocities of.
    */
-  static double temperature(AtomicState& state) {
-    // Boltzmann constant is in Joules / Kelvin. We need to convert the average
-    // kinetic energy into Joules
-    return (2 * state.average_kinetic()) /
-           (3 * constants::boltzmann * constants::joule_to_internal);
-  }
-
-  /**
-   *
-   */
-  static void initialise_velocities(AtomicState& state, double temp) {
+  void initialise_velocities(AtomicState& state) {
+    spdlog::info(
+        "Initialising atomic state velocities from Maxwell-Boltzmann "
+        "distribution at {}K.",
+        temp_);
     std::vector<double> vel_com(3);
 
     std::random_device rd;
@@ -67,7 +61,7 @@ class Thermostat {
     }
 
     // Rescale velocities to match desired temperature
-    double scale = std::sqrt(temp / temperature(state));
+    double scale = std::sqrt(temp_ / temperature(state));
     vel = state.vel();
     for (std::size_t iatom = 0; iatom < state.num_atoms(); ++iatom) {
       for (std::size_t idim = 0; idim < 3; ++idim) {
@@ -77,44 +71,19 @@ class Thermostat {
   }
 
   /**
-   * @brief Abstract application method; thermostat an atomic state.
-   * @param state The atomic state to thermostat.
+   * @brief Compute the kinetic temperature associated with the atomic state.
+   * @param state The atomic state to compute the kinetic temperature of.
+   * @return The kinetic temperature.
    */
-  virtual void apply(AtomicState& state) = 0;
+  static double temperature(AtomicState& state) {
+    // Boltzmann constant is in Joules / Kelvin. We need to convert the average
+    // kinetic energy into Joules
+    return (2 * state.average_kinetic()) /
+           (3 * constants::boltzmann * constants::joule_to_internal);
+  }
 
  protected:
   double temp_;
-};
-
-/**
- * @brief Velocity rescaling specialisation of the thermostat.
- */
-class VelocityRescalingThermostat : public Thermostat {
- public:
-  /**
-   * @brief Class constructor.
-   * @param temp The desired temperature to maintain.
-   */
-  VelocityRescalingThermostat(double temp) : Thermostat(temp) {}
-
-  /**
-   * @brief Apply velocity rescaling to the atomic state to maintain a constant
-   * kinetic energy in the system.
-   *
-   * You can find this in Equation (8.15) of Computational Physics, Thijssen.
-   * @param state The atomic state to thermostat.
-   */
-  void apply(AtomicState& state) {
-    double lambda = std::sqrt((temp_ * (state.num_atoms() - 1)) /
-                              Thermostat::temperature(state));
-
-    Tensor<double, 2>::iterator vel = state.vel();
-    for (std::size_t iatom = 0; iatom < state.num_atoms(); ++iatom) {
-      for (std::size_t idim = 0; idim < 3; ++idim) {
-        *vel++ *= lambda;
-      }
-    }
-  }
 };
 
 }  // namespace tyche

@@ -90,7 +90,11 @@ class MolecularDynamicsBuilder {
    * @brief Return the built MolecularDynamics object.
    * @return The final MolecularDynamics object.
    */
-  MolecularDynamics build() { return std::move(simulation_); }
+  MolecularDynamics build() {
+    // Apply any post-construction manipulations to the atomic state
+    simulation_.integrator_->initialise(*simulation_.atomic_state_);
+    return std::move(simulation_);
+  }
 
  private:
   MolecularDynamics simulation_;

@@ -30,6 +30,11 @@ class Integrate {
       : dt_{dt.value()}, num_steps_{num_steps.value()} {}
 
   /**
+   *
+   */
+  virtual void initialise(AtomicState& state) = 0;
+  
+  /**
    * @brief Base virtual method to be overridden by all integrators. Step the
    * simulation forward by the time increment.
    * @param state The atomic state to propagate forwards.

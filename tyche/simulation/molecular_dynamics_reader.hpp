@@ -51,19 +51,34 @@ class MolecularDynamicsReader {
   /**
    * @brief Parse a TOML table into a mapping from keys into their values.
    * @param config The "MolecularDynamics.QQ" node of the TOML configuration.
+   * @param prefix Optional string to prepend to key values.
    * @return Mapping from keys to values. The values are std::any, either a
    * string or double. Double is chosen for any numeric type because it can be
    * coerced into an integer.
    */
-  std::map<std::string, std::any> parse_table(toml::table config) {
+  std::map<std::string, std::any> parse_table(
+      toml::table config, std::optional<std::string> prefix = std::nullopt) {
     std::map<std::string, std::any> mapping;
 
-    config.for_each([&mapping](const toml::key& key, auto&& val) {
-      std::string key_val(key.str());
+    config.for_each([&](const toml::key& key, auto&& val) {
+      // If we have a prefix, then make sure we prepend it to the key
+      std::string key_val("");
+      if (prefix != std::nullopt) {
+        key_val += prefix.value() + ".";
+      }
+      key_val += key.str();
       if constexpr (toml::is_number<decltype(val)>) {
         mapping[key_val] = static_cast<double>(val.get());
       } else if constexpr (toml::is_string<decltype(val)>) {
         mapping[key_val] = val.get();
+      } else if constexpr (toml::is_table<decltype(val)>) {
+        // Recursively descend tables, using current key value as prefix for all
+        // keys therein
+        auto subtable_map =
+            parse_table(val, std::optional<std::string>(key_val));
+        mapping.insert(subtable_map.begin(), subtable_map.end());
+      } else {
+        spdlog::error("Unrecognised type of TOML entry.");
       }
     });
     return mapping;
