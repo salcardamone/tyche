@@ -19,9 +19,9 @@ namespace tyche {
 
 /**
  * @brief Reader for a TOML file.
- * @tparam T The class we're reading.
+ * @tparam ReturnType The class we're reading.
  */
-template <class T>
+template <class ReturnType>
 class TOMLReader : public Reader {
  public:
   using Reader::Mapping;
@@ -31,7 +31,7 @@ class TOMLReader : public Reader {
    * @param config The TOML table we're reading from.
    * @return The completely constructed object we've read.
    */
-  virtual T parse(toml::table& config) = 0;
+  virtual ReturnType parse(toml::table& config) = 0;
 
  protected:
   /**
@@ -86,10 +86,12 @@ class TOMLReader : public Reader {
 
   /**
    * @brief Parse a TOML array of TOML arrays into a 2D tensor.
+   * @tparam DataType The datatype stored within the matrix.
    * @param array The array we're parsing containing TOML arrays.
    * @return A 2D tensor containing the data.
    */
-  Tensor<double, 2> parse_matrix(toml::array array) {
+  template <typename DataType>
+  Tensor<DataType, 2> parse_matrix(toml::array array) {
     std::size_t num_rows = array.size(), num_cols = 0;
 
     // Make sure the matrix is well-formed
@@ -111,11 +113,11 @@ class TOMLReader : public Reader {
 
     // Now just flatten the data and dump it into a std::vector
     auto data = array.flatten();
-    std::vector<double> data_vector(num_rows * num_cols);
+    std::vector<DataType> data_vector(num_rows * num_cols);
     for (std::size_t idata = 0; idata < data.size(); ++idata) {
-      data_vector[idata] = *data[idata].value<double>();
+      data_vector[idata] = *data[idata].value<DataType>();
     }
-    return Tensor<double, 2>(std::move(data_vector), num_rows, num_cols);
+    return Tensor<DataType, 2>(std::move(data_vector), num_rows, num_cols);
   }
 };
 

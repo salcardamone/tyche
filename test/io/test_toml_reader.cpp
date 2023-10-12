@@ -33,7 +33,7 @@ class TOMLReaderImpl : public TOMLReader<TOMLData> {
    */
   TOMLData parse(toml::table& config) {
     TOMLData data;
-    data.matrix = parse_matrix(*config["matrix"].as_array());
+    data.matrix = parse_matrix<double>(*config["matrix"].as_array());
     return data;
   }
 };
