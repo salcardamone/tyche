@@ -24,6 +24,7 @@ test_cell = executable('test_cell',
 )
 test('test_cell', test_cell)
 
+subdir('io')
 subdir('system')
 subdir('force')
 subdir('integrate')
