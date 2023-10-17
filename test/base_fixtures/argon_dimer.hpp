@@ -12,6 +12,7 @@
 // Project Inclusions
 #include "tyche/system/cell.hpp"
 #include "tyche/atom/atom_type_reader.hpp"
+#include "tyche/atom/dynamic_atomic_state.hpp"
 #include "tyche/atom/atomic_state_reader.hpp"
 
 using namespace tyche;
@@ -31,15 +32,15 @@ class ArgonDimer : public ::testing::Test {
     atom_types = reader.parse();
 
     AtomicStateReader reader2(config);
-    atomic_state = std::make_shared<AtomicState>(
-        std::move(reader2.parse(atom_types, true, true)));
+    atomic_state = std::make_shared<DynamicAtomicState>(
+        std::move(reader2.parse_dynamic_atomic_state(atom_types)));
 
     cell = std::make_unique<UnboundedCell>();
   }
 
  protected:
   std::unique_ptr<Cell> cell;
-  std::shared_ptr<AtomicState> atomic_state;
+  std::shared_ptr<DynamicAtomicState> atomic_state;
   std::map<std::string, std::shared_ptr<AtomType>> atom_types;
 
   static constexpr std::string_view toml = R"(

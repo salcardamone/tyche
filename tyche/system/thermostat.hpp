@@ -12,7 +12,7 @@
 // Project Inclusions
 #include "tyche/util/tensor.hpp"
 #include "tyche/util/constants.hpp"
-#include "tyche/atom/atomic_state.hpp"
+#include "tyche/atom/dynamic_atomic_state.hpp"
 
 namespace tyche {
 
@@ -32,7 +32,7 @@ class Thermostat {
    * parameterised temperatures.
    * @param state The atomic state to initialise velocities of.
    */
-  void initialise_velocities(AtomicState& state) {
+  void initialise_velocities(DynamicAtomicState& state) {
     spdlog::info(
         "Initialising atomic state velocities from Maxwell-Boltzmann "
         "distribution at {}K.",
@@ -75,7 +75,7 @@ class Thermostat {
    * @param state The atomic state to compute the kinetic temperature of.
    * @return The kinetic temperature.
    */
-  static double temperature(AtomicState& state) {
+  static double temperature(DynamicAtomicState& state) {
     // Boltzmann constant is in Joules / Kelvin. We need to convert the average
     // kinetic energy into Joules
     return (2 * state.average_kinetic()) /

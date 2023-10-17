@@ -46,7 +46,7 @@ class LennardJones : public Force {
    * @param state The atomic state we're computing the forces for.
    * @return The Lennard-Jones potential.
    */
-  double evaluate(AtomicState& state, const Cell& cell) override {
+  double evaluate(DynamicAtomicState& state, const Cell& cell) override {
     double pot = 0;
 
     Tensor<double, 2>::const_iterator iatom_pos = state.pos();

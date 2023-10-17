@@ -12,7 +12,7 @@
 #include <toml++/toml.h>
 // Project Inclusions
 #include "tyche/util/maybe.hpp"
-#include "tyche/atom/atomic_state.hpp"
+#include "tyche/atom/dynamic_atomic_state.hpp"
 #include "tyche/io/writer_factory.hpp"
 #include "tyche/system/cell_factory.hpp"
 #include "tyche/force/force_factory.hpp"
@@ -33,7 +33,7 @@ class MolecularDynamicsBuilder {
    * (Lennard-Jones, for instance, needs to know the epsilons and sigmas for
    * each atom type), hence we should make it available to the builder.
    */
-  MolecularDynamicsBuilder(std::shared_ptr<AtomicState> atomic_state) {
+  MolecularDynamicsBuilder(std::shared_ptr<DynamicAtomicState> atomic_state) {
     simulation_.atomic_state_ = atomic_state;
   }
 

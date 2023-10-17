@@ -11,7 +11,7 @@
 //
 // Project Inclusions
 #include "tyche/io/writer.hpp"
-#include "tyche/atom/atomic_state.hpp"
+#include "tyche/atom/dynamic_atomic_state.hpp"
 #include "tyche/atom/atomic_state_writer.hpp"
 #include "tyche/system/cell.hpp"
 #include "tyche/integrate/integrate.hpp"
@@ -56,7 +56,7 @@ class MolecularDynamics : public Simulation {
    * @return A new MolecularDynamicsBuilder instance.
    */
   static MolecularDynamicsBuilder create(
-      std::shared_ptr<AtomicState> atomic_state);
+      std::shared_ptr<DynamicAtomicState> atomic_state);
 
   friend MolecularDynamicsBuilder;
 
@@ -71,7 +71,7 @@ class MolecularDynamics : public Simulation {
     std::unique_ptr<Writer> writer;
   };
 
-  std::shared_ptr<AtomicState> atomic_state_;
+  std::shared_ptr<DynamicAtomicState> atomic_state_;
   std::unique_ptr<Cell> cell_;
   std::unique_ptr<Integrate> integrator_;
   std::unique_ptr<Forces> forces_;

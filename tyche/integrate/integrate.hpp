@@ -11,7 +11,7 @@
 //
 // Project Inclusions
 #include "tyche/system/cell.hpp"
-#include "tyche/atom/atomic_state.hpp"
+#include "tyche/atom/dynamic_atomic_state.hpp"
 #include "tyche/force/force.hpp"
 
 namespace tyche {
@@ -32,7 +32,7 @@ class Integrate {
   /**
    *
    */
-  virtual void initialise(AtomicState& state) = 0;
+  virtual void initialise(DynamicAtomicState& state) = 0;
   
   /**
    * @brief Base virtual method to be overridden by all integrators. Step the
@@ -41,7 +41,7 @@ class Integrate {
    * @param forces The force evaluation object.
    * @param cell The simulation cell for periodic boundary conditions.
    */
-  virtual void step(AtomicState& state, Forces& forces, const Cell& cell) = 0;
+  virtual void step(DynamicAtomicState& state, Forces& forces, const Cell& cell) = 0;
 
   /**
    * @brief Getter for the time increment of the integrator.

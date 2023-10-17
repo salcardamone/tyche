@@ -11,7 +11,7 @@
 #include <spdlog/spdlog.h>
 // Project Inclusions
 #include "tyche/atom/atom_type_reader.hpp"
-#include "tyche/atom/atomic_state.hpp"
+#include "tyche/atom/dynamic_atomic_state.hpp"
 #include "tyche/system/cell.hpp"
 
 using namespace tyche;
@@ -61,7 +61,7 @@ class ArgonBox : public ::testing::Test {
 
  protected:
   std::unique_ptr<CubicCell> cell;
-  std::shared_ptr<AtomicState> atomic_state;
+  std::shared_ptr<DynamicAtomicState> atomic_state;
   std::map<std::string, std::shared_ptr<AtomType>> atom_types;
 
   static constexpr std::string_view toml = R"(
@@ -82,7 +82,7 @@ class ArgonBox : public ::testing::Test {
     AtomTypeReader reader(config);
     atom_types = reader.parse();
 
-    atomic_state = std::make_shared<AtomicState>(true, true);
+    atomic_state = std::make_shared<DynamicAtomicState>();
 
     return std::floor(std::pow(num_atoms, 1. / 3.));
   }

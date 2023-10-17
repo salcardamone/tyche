@@ -14,6 +14,7 @@
 #include "tyche/util/tensor.hpp"
 #include "tyche/atom/atom_type.hpp"
 #include "tyche/atom/atomic_state.hpp"
+#include "tyche/atom/dynamic_atomic_state.hpp"
 
 namespace tyche {
 
@@ -34,11 +35,31 @@ class AtomicStateReader {
    * @param atom_types Mapping from atom type name to parsed AtomType.
    * @return The AtomicState object parsed from the configuration TOML.
    */
-  AtomicState parse(
-      std::map<std::string, std::shared_ptr<AtomType>>& atom_types,
-      bool needs_velocity = false, bool needs_acceleration = false) {
+  AtomicState parse_atomic_state(
+      std::map<std::string, std::shared_ptr<AtomType>>& atom_types) {
+    AtomicState state;
 
-    AtomicState state(needs_velocity, needs_acceleration);
+    auto num_atoms_type = parse_atom_types();
+
+    std::size_t num_atoms = 0;
+    for (const auto& k : atom_types) {
+      spdlog::info("Found {} atom/s of type {}.", num_atoms_type.at(k.first),
+                   k.first);
+      num_atoms += num_atoms_type.at(k.first);
+    }
+    spdlog::info("Found {} atom/s in total.", num_atoms);
+
+    auto pos = parse_tensor("positions", num_atoms);
+    auto types = create_types(atom_types, num_atoms_type);
+
+    state.add(std::move(types), std::move(*pos));
+
+    return state;
+  }
+
+  DynamicAtomicState parse_dynamic_atomic_state(
+      std::map<std::string, std::shared_ptr<AtomType>>& atom_types) {
+    DynamicAtomicState state;
 
     auto num_atoms_type = parse_atom_types();
 

@@ -10,7 +10,7 @@
 //
 // Project Inclusions
 #include "tyche/system/cell.hpp"
-#include "tyche/atom/atomic_state.hpp"
+#include "tyche/atom/dynamic_atomic_state.hpp"
 #include "tyche/force/force.hpp"
 #include "tyche/integrate/integrate.hpp"
 
@@ -36,7 +36,7 @@ class VelocityVerlet : public Integrate {
    * Maxwell-Boltzmann distribution at a given temperature.
    * @param state The atomic state to initialise.
    */
-  void initialise(AtomicState& state) {}
+  void initialise(DynamicAtomicState& state) {}
   
   /**
    * @brief Propagate the atomic state forwards by the time increment using the
@@ -50,7 +50,7 @@ class VelocityVerlet : public Integrate {
    * @param forces The force evaluation object.
    * @param cell The simulation cell for periodic boundary conditions.
    */
-  virtual void step(AtomicState& state, Forces& forces, const Cell& cell) {
+  virtual void step(DynamicAtomicState& state, Forces& forces, const Cell& cell) {
     half_step_one(state, cell);
     forces.evaluate(state, cell);
     half_step_two(state, cell);
@@ -69,7 +69,7 @@ class VelocityVerlet : public Integrate {
    * @param state The atomic state to propagate forwards.
    * @param cell The simulation cell for periodic boundary conditions.
    */
-  void half_step_one(AtomicState& state, const Cell& cell) {
+  void half_step_one(DynamicAtomicState& state, const Cell& cell) {
     Tensor<double, 2>::iterator pos = state.pos(), vel = state.vel();
     Tensor<double, 2>::const_iterator force = state.force();
     // Advance velocity by half timestep and position by full timestep
@@ -94,7 +94,7 @@ class VelocityVerlet : public Integrate {
    * @param state The atomic state to propagate forwards.
    * @param cell The simulation cell for periodic boundary conditions.
    */
-  void half_step_two(AtomicState& state, const Cell& cell) {
+  void half_step_two(DynamicAtomicState& state, const Cell& cell) {
     Tensor<double, 2>::iterator vel = state.vel();
     Tensor<double, 2>::const_iterator force = state.force();
     // Advance velocity to full timestep

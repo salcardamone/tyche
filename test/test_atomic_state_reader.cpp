@@ -24,12 +24,13 @@ class TestAtomicStateReader : public ::testing::Test {
     atom_types = reader.parse();
 
     AtomicStateReader reader2(config);
-    atomic_state = reader2.parse(atom_types);
-    atomic_state_vel_force = reader2.parse(atom_types, true, true);
+    atomic_state = reader2.parse_atomic_state(atom_types);
+    atomic_state_vel_force = reader2.parse_dynamic_atomic_state(atom_types);
   }
 
   std::map<std::string, std::shared_ptr<AtomType>> atom_types;
-  AtomicState atomic_state, atomic_state_vel_force;
+  AtomicState atomic_state;
+  DynamicAtomicState atomic_state_vel_force;
 
  private:
   static constexpr std::string_view basic_toml = R"(

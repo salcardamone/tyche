@@ -24,7 +24,7 @@ class MolecularDynamicsReader : public TOMLReader<MolecularDynamics> {
    * @brief Class constructor.
    * @param atomic_state The atomic state we're going to simulate.
    */
-  MolecularDynamicsReader(std::shared_ptr<AtomicState> atomic_state)
+  MolecularDynamicsReader(std::shared_ptr<DynamicAtomicState> atomic_state)
       : atomic_state_{atomic_state} {}
 
   /**
@@ -47,7 +47,7 @@ class MolecularDynamicsReader : public TOMLReader<MolecularDynamics> {
   }
 
  private:
-  std::shared_ptr<AtomicState> atomic_state_;
+  std::shared_ptr<DynamicAtomicState> atomic_state_;
 };
 
 }  // namespace tyche
