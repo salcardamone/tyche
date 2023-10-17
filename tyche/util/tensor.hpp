@@ -193,38 +193,55 @@ class Tensor {
   /**
    * @brief Horizontally concatenate this tensor with the argument tensor.
    * This is only valid when the tensors are 2D matrices.
+   * @tparam Dim The dimension we're concatenating; when Dim = 0, concatenate
+   * rows, i.e. horizontal concatenation, while when Dim = 1, concatenate
+   * columns, i.e. vertical concatenation.
    * @param other Tensor to concatenate with this Tensor.
    */
+  template <std::size_t Dim>
   void concatenate(Tensor<DataType, NumDims>& other) {
     static_assert(NumDims == 2, "Tensor concatenation requires 2D Tensors.");
-    assert(size(0) == other.size(0));
 
     std::array<std::size_t, NumDims> new_size{dim_size_};
-    new_size[1] += other.size(1);
+    if constexpr (Dim == 0) {
+      assert(size(0) == other.size(0));
+      new_size[1] += other.size(1);
+    } else if constexpr (Dim == 1) {
+      assert(size(1) == other.size(1));
+      new_size[0] += other.size(0);
+    }
     auto old_size = dim_size_;
 
     resize(new_size[0], new_size[1]);
 
     // Fill in additional space between rows for concatenation of new matrix,
     // then dump the data from the other matrix into that space
-    for (std::size_t irow = 0; irow < new_size[0]; ++irow) {
-      // Where to start placing B in resized A
-      auto start_it = data_.begin() + irow * new_size[1] + old_size[1];
-      // Where final element of A is in resized A
-      auto end_it = start_it + old_size[1] * (old_size[0] - irow - 1);
-      // Where to place the data in resized A
-      auto dest_it = start_it + other.size(1);
+    if constexpr (Dim == 0) {
+      for (std::size_t irow = 0; irow < new_size[0]; ++irow) {
+        // Where to start placing B in resized A
+        auto start_it = data_.begin() + irow * new_size[1] + old_size[1];
+        // Where final element of A is in resized A
+        auto end_it = start_it + old_size[1] * (old_size[0] - irow - 1);
+        // Where to place the data in resized A
+        auto dest_it = start_it + other.size(1);
 
-      // We can't copy directly into the resized A else we'll overwrite the
-      // stuff we're trying to copy, hence we duplicate the elements to copy
-      std::vector<DataType> temp(start_it, end_it);
-      // Create additional space for the concatenation
-      std::copy_if(
-          temp.begin(), temp.end(), dest_it,
-          [irow, new_size](DataType x) { return irow < new_size[0] - 1; });
-      // Copy the other matrix's data into the space
-      std::copy(other.begin() + irow * other.size(1),
-                other.begin() + (irow + 1) * other.size(1), start_it);
+        // We can't copy directly into the resized A else we'll overwrite the
+        // stuff we're trying to copy, hence we duplicate the elements to copy
+        std::vector<DataType> temp(start_it, end_it);
+        // Create additional space for the concatenation
+        std::copy_if(
+            temp.begin(), temp.end(), dest_it,
+            [irow, new_size](DataType x) { return irow < new_size[0] - 1; });
+        // Copy the other matrix's data into the space
+        std::copy(other.begin() + irow * other.size(1),
+                  other.begin() + (irow + 1) * other.size(1), start_it);
+      }
+
+      // Vertical concatension is easy; just paste the other matrix to the end
+      // of this one
+    } else if constexpr (Dim == 1) {
+      std::copy(other.begin(), other.end(),
+                data_.begin() + old_size[0] * old_size[1]);
     }
   }
 

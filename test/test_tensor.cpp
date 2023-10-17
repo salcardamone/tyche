@@ -94,39 +94,66 @@ TEST(TensorTests, Resize) {
  * @brief Test whether we can concatenate two 2D matrices as expected.
  */
 TEST(TensorTests, Concatenation) {
-  Tensor<double, 2> tensor_a(std::vector<double>{1, 2, 3, 4, 5, 6}, 3, 2);
-  Tensor<double, 2> tensor_b(std::vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9}, 3,
-                             3);
-  tensor_a.concatenate(tensor_b);
+  // Row-concatenation
+  {
+    Tensor<double, 2> tensor_a(std::vector<double>{1, 2, 3, 4, 5, 6}, 3, 2);
+    Tensor<double, 2> tensor_b(std::vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9},
+                               3, 3);
+    tensor_a.concatenate<0>(tensor_b);
 
-  ASSERT_EQ(tensor_a.size(0), 3);
-  ASSERT_EQ(tensor_a.size(1), 5);
-  ASSERT_EQ(tensor_a.num_elements(), 15);
+    ASSERT_EQ(tensor_a.size(0), 3);
+    ASSERT_EQ(tensor_a.size(1), 5);
+    ASSERT_EQ(tensor_a.num_elements(), 15);
 
-  ASSERT_EQ(tensor_a(0, 0), 1);
-  ASSERT_EQ(tensor_a(0, 1), 2);
-  ASSERT_EQ(tensor_a(0, 2), 1);
-  ASSERT_EQ(tensor_a(0, 3), 2);
-  ASSERT_EQ(tensor_a(0, 4), 3);
+    ASSERT_EQ(tensor_a(0, 0), 1);
+    ASSERT_EQ(tensor_a(0, 1), 2);
+    ASSERT_EQ(tensor_a(0, 2), 1);
+    ASSERT_EQ(tensor_a(0, 3), 2);
+    ASSERT_EQ(tensor_a(0, 4), 3);
 
-  ASSERT_EQ(tensor_a(1, 0), 3);
-  ASSERT_EQ(tensor_a(1, 1), 4);
-  ASSERT_EQ(tensor_a(1, 2), 4);
-  ASSERT_EQ(tensor_a(1, 3), 5);
-  ASSERT_EQ(tensor_a(1, 4), 6);
+    ASSERT_EQ(tensor_a(1, 0), 3);
+    ASSERT_EQ(tensor_a(1, 1), 4);
+    ASSERT_EQ(tensor_a(1, 2), 4);
+    ASSERT_EQ(tensor_a(1, 3), 5);
+    ASSERT_EQ(tensor_a(1, 4), 6);
 
-  ASSERT_EQ(tensor_a(2, 0), 5);
-  ASSERT_EQ(tensor_a(2, 1), 6);
-  ASSERT_EQ(tensor_a(2, 2), 7);
-  ASSERT_EQ(tensor_a(2, 3), 8);
-  ASSERT_EQ(tensor_a(2, 4), 9);
+    ASSERT_EQ(tensor_a(2, 0), 5);
+    ASSERT_EQ(tensor_a(2, 1), 6);
+    ASSERT_EQ(tensor_a(2, 2), 7);
+    ASSERT_EQ(tensor_a(2, 3), 8);
+    ASSERT_EQ(tensor_a(2, 4), 9);
+  }
+  // Column-concatenation
+  {
+    Tensor<double, 2> tensor_a(std::vector<double>{1, 2, 3, 4, 5, 6}, 3, 2);
+    Tensor<double, 2> tensor_b(std::vector<double>{7, 8, 9, 10}, 2, 2);
+    tensor_a.concatenate<1>(tensor_b);
+
+    ASSERT_EQ(tensor_a.size(0), 5);
+    ASSERT_EQ(tensor_a.size(1), 2);
+    ASSERT_EQ(tensor_a.num_elements(), 10);
+
+    ASSERT_EQ(tensor_a(0, 0), 1);
+    ASSERT_EQ(tensor_a(0, 1), 2);
+
+    ASSERT_EQ(tensor_a(1, 0), 3);
+    ASSERT_EQ(tensor_a(1, 1), 4);
+
+    ASSERT_EQ(tensor_a(2, 0), 5);
+    ASSERT_EQ(tensor_a(2, 1), 6);
+
+    ASSERT_EQ(tensor_a(3, 0), 7);
+    ASSERT_EQ(tensor_a(3, 1), 8);
+
+    ASSERT_EQ(tensor_a(4, 0), 9);
+    ASSERT_EQ(tensor_a(4, 1), 10);
+  }
 }
 
 /**
  * @brief Various inner product methods.
  */
 TEST(TensorTests, InnerProduct) {
-
   // Inner products within a single tensor
   {
     Tensor<double, 2> tensor(std::vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9}, 3,
@@ -145,7 +172,7 @@ TEST(TensorTests, InnerProduct) {
     // 2 * 3 + 5 * 6 + 8 * 9 = 6 + 30 + 72
     ASSERT_EQ(tensor.inner_product<1>(1, 2), 108);
   }
-  
+
   // Inner products between tensors
   {
     auto row_row = Tensor<double, 2>::inner_product<0, 0>;
