@@ -20,14 +20,26 @@
 
 namespace tyche {
 
+/**
+ * @brief Reader for AtomType objects from configuration file.
+ */
 class AtomTypeReader
     : public TOMLReader<std::map<std::string, std::shared_ptr<AtomType>>> {
  public:
   using AtomTypeMapping = std::map<std::string, std::shared_ptr<AtomType>>;
   using TOMLReader<AtomTypeMapping>::Mapping;
 
+  /**
+   * @brief Class constructor.
+   */
   AtomTypeReader() {}
 
+  /**
+   * @brief Parse all atom types from the "AtomTypes" node of the TOML.
+   * @param config The "AtomTypes" node of the TOML configuration.
+   * @return A mapping from atom type identifier to a smart pointer to the
+   * associated AtomType object.
+   */
   AtomTypeMapping parse(toml::table& config) {
     AtomTypeMapping mapping;
     auto atom_types = parse_keys(config);
@@ -39,6 +51,13 @@ class AtomTypeReader
   }
 
  private:
+  /**
+   * @brief Construct an AtomType object from the TOML configuration.
+   * @param config The "AtomTypes.QQ" node of the TOML configuration, where `QQ`
+   * is the atom type identifier.
+   * @param atom_type The atom type identifier.
+   * @return The constructed AtomType object.
+   */
   AtomType parse_atom_type(toml::table& config, std::string atom_type) {
     auto mapping = parse_table(config);
     // Partially create the builder, setting all fundamental parameters
