@@ -9,7 +9,7 @@
 #include <cstring>
 #include <optional>
 // Third-Party Libraries
-#include <toml++/toml.h>
+#include "toml++/toml.h"
 // Project Inclusions
 #include "tyche/util/maybe.hpp"
 #include "tyche/atom/dynamic_atomic_state.hpp"

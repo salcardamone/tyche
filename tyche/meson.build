@@ -1,6 +1,9 @@
+subdir('atom')
+
 tyche_lib = shared_library('tyche',
-  sources: ['atom/atom_type.cpp', 'simulation/molecular_dynamics.cpp'],
+  sources: ['simulation/molecular_dynamics.cpp'],
   include_directories: tyche_include_dir,
+  link_with: [atom_lib],
   dependencies: [spdlog_dep]
 )
 

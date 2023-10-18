@@ -6,7 +6,10 @@ endif
 
 tyche_include_dir = include_directories('.')
 
+spdlog = subproject('spdlog')
 spdlog_dep = dependency('spdlog')
+tomlplusplus = subproject('tomlplusplus')
+tomlplusplus_dep = dependency('tomlplusplus')
 
 subdir('tyche')
 subdir('test')
