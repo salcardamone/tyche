@@ -76,14 +76,14 @@ class AtomType {
  * @brief Formatter for the AtomType object that allows us to print information
  * with spdlog.
  */
-template <>
-struct fmt::formatter<tyche::AtomType> : fmt::formatter<std::string> {
-  auto format(tyche::AtomType& atom_type, format_context& ctx)
-      -> decltype(ctx.out()) {
-    std::ostringstream ss;
-    ss << atom_type;
-    return format_to(ctx.out(), "{}", ss.str());
-  }
-};
+// template <>
+// struct fmt::formatter<tyche::AtomType> : fmt::formatter<std::string> {
+//   auto format(tyche::AtomType& atom_type, format_context& ctx)
+//       -> decltype(ctx.out()) {
+//     std::ostringstream ss;
+//     ss << atom_type;
+//     return format_to(ctx.out(), "{}", ss.str());
+//   }
+// };
 
 #endif /* #ifndef __TYCHE_ATOM_TYPE_HPP */

@@ -383,15 +383,15 @@ class Tensor {
  * @brief Formatter for the Tensor object that allows us to print information
  * with spdlog.
  */
-template <typename DataType, std::size_t NumDims>
-struct fmt::formatter<tyche::Tensor<DataType, NumDims>>
-    : fmt::formatter<std::string> {
-  auto format(tyche::Tensor<DataType, NumDims>& tensor, format_context& ctx)
-      -> decltype(ctx.out()) {
-    std::ostringstream ss;
-    ss << tensor;
-    return format_to(ctx.out(), "{}", ss.str());
-  }
-};
+// template <typename DataType, std::size_t NumDims>
+// struct fmt::formatter<tyche::Tensor<DataType, NumDims>>
+//     : fmt::formatter<std::string> {
+//   auto format(tyche::Tensor<DataType, NumDims>& tensor, format_context& ctx)
+//       -> decltype(ctx.out()) {
+//     std::ostringstream ss;
+//     ss << tensor;
+//     return format_to(ctx.out(), "{}", ss.str());
+//   }
+// };
 
 #endif /* #ifndef __TYCHE_TENSOR_HPP */

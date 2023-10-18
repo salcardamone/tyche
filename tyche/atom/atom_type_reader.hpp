@@ -41,7 +41,6 @@ class AtomTypeReader {
       std::ostringstream ss;
       ss << key.first;
       auto atom_type = std::make_shared<AtomType>(parse_atom_type(ss.str()));
-      spdlog::info("{}", *atom_type);
       atom_types[ss.str()] = atom_type;
     }
 
