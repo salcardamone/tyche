@@ -21,8 +21,8 @@ class TestAtomicStateReader : public ::testing::Test {
     spdlog::set_level(spdlog::level::off);
     toml::table static_config = toml::parse(static_toml);
     toml::table dynamic_config = toml::parse(dynamic_toml);
-    AtomTypeReader reader(static_config);
-    atom_types = reader.parse();
+    AtomTypeReader reader;
+    atom_types = reader.parse(*static_config["AtomTypes"].as_table());
 
     AtomicStateReader static_reader(atom_types);
     static_atomic_state_a =

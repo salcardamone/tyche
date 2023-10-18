@@ -11,7 +11,7 @@
 using namespace tyche;
 using namespace std::string_view_literals;
 
-static constexpr std::string_view basic_toml = R"(
+static constexpr std::string_view atom_type_toml = R"(
     [AtomTypes.H]
     mass = 1.0
     nuclear_charge = 1
@@ -26,9 +26,9 @@ static constexpr std::string_view basic_toml = R"(
 TEST(TestAtomTypeReader, ParseAtomType) {
   spdlog::set_level(spdlog::level::off);
 
-  toml::table config = toml::parse(basic_toml);
-  AtomTypeReader reader(config);
-  auto atom_types = reader.parse();
+  toml::table config = toml::parse(atom_type_toml);
+  AtomTypeReader reader;
+  auto atom_types = reader.parse(*config["AtomTypes"].as_table());
 
   ASSERT_EQ(atom_types["H"]->mass(), 1.0);
   ASSERT_EQ(atom_types["H"]->nuclear_charge(), 1);

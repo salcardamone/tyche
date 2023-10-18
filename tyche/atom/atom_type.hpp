@@ -5,13 +5,15 @@
 #define __TYCHE_ATOM_TYPE_HPP
 
 // C++ Standard Libraries
-#include <iostream>
-#include <sstream>
-#include <string>
+#include <any>
+#include <map>
+#include <cstring>
+#include <cstdint>
+#include <optional>
 // Third-party Libraries
-#include <spdlog/spdlog.h>
-// Project Inclusions
 //
+// Project Inclusions
+#include "tyche/util/maybe.hpp"
 
 namespace tyche {
 
@@ -19,26 +21,69 @@ namespace tyche {
 class AtomTypeBuilder;
 
 /**
- * @brief Wrapper around an atom type's various parameters.
+ * @brief Wrapper around an atom type's parameters.
+ *
+ * An AtomType is composed of some "fundamental" parameters that will be
+ * required by most simulation methods, and can have defaults assigned because
+ * they're unlikely to vary too frequently. These fundamental parameters have
+ * individual member variables in the class and getters.
+ *
+ * The AtomType also has a map containing simulation-specific parameters, or
+ * parameters it's silly to try to provide defaults for. These parameters can be
+ * retrieved from the `get` getter which optionally returns the parameter if
+ * it has been provided during configuration. These parameters shouldn't be
+ * retrieved within computational hotspots since we have to search a map each
+ * time.
  */
 class AtomType {
  public:
-  AtomType(std::string id) : id_{id} {};
+  friend AtomTypeBuilder;
 
-  AtomType(AtomType&) = delete;
-  AtomType(const AtomType&) = default;
-  AtomType& operator=(const AtomType&) = default;
+  /**
+   * @brief Class constructor.
+   * @param id Identifier for the atom type.
+   */
+  AtomType(std::string id) : id_{id} {}
 
-  AtomType(AtomType&&) = default;
-  AtomType& operator=(AtomType&&) = default;
-
+  /**
+   * @brief Getter for the atom type identifier.
+   * @return Atom type identifier.
+   */
   const std::string id() const { return id_; }
+
+  /**
+   * @brief Getter for the atom type mass.
+   * @return Atom type mass.
+   */
   const double mass() const { return mass_; }
+
+  /**
+   * @brief Getter for the nuclear charge of the atom type.
+   * @return Atom type nuclear charge.
+   */
   const uint32_t nuclear_charge() const { return nuclear_charge_; }
+
+  /**
+   * @brief Getter for the number of electrons in of the atom type.
+   * @return Atom type number of electrons.
+   */
   const uint32_t num_electrons() const { return num_electrons_; }
-  const double eps_lj() const { return eps_lj_; }
-  const double sigma_lj() const { return sigma_lj_; }
-  
+
+  /**
+   * @brief Getter for non-fundamental parameters that may have been read from
+   * the configuration.
+   * @tparam DataType Type of value to try and retrieve from the non-fundamental
+   * parameters.
+   * @param name The name of the parameter to try and retrieve from the
+   * non-fundamental parameters.
+   * @return The value associated with the requested parameter. Optional; may
+   * return nothing if the parameter wasn't read from the configuration.
+   */
+  template <typename DataType>
+  std::optional<DataType> get(std::string name) {
+    return maybe_find<DataType>(others_, name);
+  }
+
   /**
    * @brief Create a new instance of the AtomTypeBuilder.
    * @param id The atom type identifier; typically the element name.
@@ -54,36 +99,20 @@ class AtomType {
    * @return The modified output stream operator.
    */
   friend std::ostream& operator<<(std::ostream& os, const AtomType& atom_type) {
-    os << "Atom Type Identifier: " << atom_type.id_
-       << ", Mass: " << atom_type.mass_
-       << ", Num. Electrons: " << atom_type.num_electrons_
-       << ", Nuclear Charge: " << atom_type.nuclear_charge_;
+    os << "Atom Type Identifier: " << atom_type.id()
+       << ", Mass: " << atom_type.mass()
+       << ", Num. Electrons: " << atom_type.num_electrons()
+       << ", Nuclear Charge: " << atom_type.nuclear_charge();
     return os;
   }
-
-  friend AtomTypeBuilder;
 
  private:
   std::string id_;
   double mass_;
-  uint32_t num_electrons_, nuclear_charge_;
-  double eps_lj_, sigma_lj_;
+  uint32_t nuclear_charge_, num_electrons_;
+  std::map<std::string, std::any> others_;
 };
 
 }  // namespace tyche
-
-/**
- * @brief Formatter for the AtomType object that allows us to print information
- * with spdlog.
- */
-// template <>
-// struct fmt::formatter<tyche::AtomType> : fmt::formatter<std::string> {
-//   auto format(tyche::AtomType& atom_type, format_context& ctx)
-//       -> decltype(ctx.out()) {
-//     std::ostringstream ss;
-//     ss << atom_type;
-//     return format_to(ctx.out(), "{}", ss.str());
-//   }
-// };
 
 #endif /* #ifndef __TYCHE_ATOM_TYPE_HPP */

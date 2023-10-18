@@ -32,10 +32,15 @@ class LennardJones : public Force {
       for (const auto& jtype : atom_types) {
         std::size_t idx = itype.second * atom_types.size() + jtype.second;
         std::size_t jdx = jtype.second * atom_types.size() + itype.second;
-        eps_[idx] = eps_[jdx] =
-            mix_eps(itype.first->eps_lj(), jtype.first->eps_lj());
-        sigma_[idx] = sigma_[jdx] =
-            mix_sigma(itype.first->sigma_lj(), jtype.first->sigma_lj());
+
+        double eps_itype = itype.first->get<double>("eps_lj").value();
+        double eps_jtype = jtype.first->get<double>("eps_lj").value();
+
+        double sigma_itype = itype.first->get<double>("sigma_lj").value();
+        double sigma_jtype = jtype.first->get<double>("sigma_lj").value();
+
+        eps_[idx] = eps_[jdx] = mix_eps(eps_itype, eps_jtype);
+        sigma_[idx] = sigma_[jdx] = mix_sigma(sigma_itype, sigma_jtype);
       }
     }
   }

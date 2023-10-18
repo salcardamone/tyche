@@ -70,6 +70,14 @@ class TOMLReader : public Reader {
     return mapping;
   }
 
+  std::vector<std::string> parse_keys(toml::table config) {
+    std::vector<std::string> keys;
+    for (auto it = config.begin(); it != config.end(); ++it) {
+      keys.push_back(std::string{*it->first.data()});
+    }
+    return keys;
+  }
+  
   /**
    * @brief Parse a TOML array of TOML tables into an iterable of mappings from
    * keys into their values.

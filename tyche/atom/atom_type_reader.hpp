@@ -7,70 +7,52 @@
 // Standard Libraries
 #include <map>
 #include <string>
+#include <ranges>
+#include <vector>
 // Third-party Libraries
 #include <spdlog/spdlog.h>
 #include <toml++/toml.h>
 // Project Inclusions
-#include "atom_type.hpp"
-#include "atom_type_builder.hpp"
+#include "tyche/atom/atom_type.hpp"
+#include "tyche/atom/atom_type_builder.hpp"
+#include "tyche/util/maybe.hpp"
+#include "tyche/io/toml_reader.hpp"
 
 namespace tyche {
 
-/**
- * @brief Reader of a TOML file to retrieve atom type information.
- */
-class AtomTypeReader {
+class AtomTypeReader
+    : public TOMLReader<std::map<std::string, std::shared_ptr<AtomType>>> {
  public:
-  /**
-   * @brief Class constructor.
-   * @param config_table TOML table with an "AtomTypes" node.
-   */
-  AtomTypeReader(toml::table config_table)
-      : toml_{*config_table["AtomTypes"].as_table()} {}
+  using AtomTypeMapping = std::map<std::string, std::shared_ptr<AtomType>>;
+  using TOMLReader<AtomTypeMapping>::Mapping;
 
-  /**
-   * @brief Parse all AtomType objects from the configuration TOML.
-   * @return A map from the AtomType ID to a shared pointer to the AtomType
-   * object.
-   */
-  std::map<std::string, std::shared_ptr<AtomType>> parse() {
-    // Our returned mapping from atom type identifier to the AtomType
-    std::map<std::string, std::shared_ptr<AtomType>> atom_types;
+  AtomTypeReader() {}
 
-    for (auto key : toml_) {
-      std::ostringstream ss;
-      ss << key.first;
-      auto atom_type = std::make_shared<AtomType>(parse_atom_type(ss.str()));
-      atom_types[ss.str()] = atom_type;
+  AtomTypeMapping parse(toml::table& config) {
+    AtomTypeMapping mapping;
+    auto atom_types = parse_keys(config);
+    for (const auto& atom_type : atom_types) {
+      mapping[atom_type] = std::make_shared<AtomType>(
+          parse_atom_type(*config[atom_type].as_table(), atom_type));
     }
-
-    return atom_types;
+    return mapping;
   }
 
  private:
-  toml::table toml_;
-
-  /**
-   * @brief Parse an AtomType from the "AtomTypes" node in the TOML table.
-   * @param atom_type Identifier string for the AtomType.
-   * @return The parsed AtomType.
-   */
-  AtomType parse_atom_type(std::string atom_type) {
-    spdlog::info("Attempting to parse atom type: {}", atom_type);
-    toml::v3::node_view<toml::v3::node> atom_type_toml;
-    try {
-      atom_type_toml = toml_[atom_type];
-    } catch (const toml::parse_error& err) {
-      spdlog::critical("Parsing Failed: {}", err.description());
-    }
-
-    return AtomType::create(atom_type)
-        .mass(atom_type_toml["mass"].value<double>())
-        .num_electrons(atom_type_toml["num_electrons"].value<uint32_t>())
-        .nuclear_charge(atom_type_toml["nuclear_charge"].value<uint32_t>())
-        .sigma_lj(atom_type_toml["sigma_lj"].value<double>())
-        .eps_lj(atom_type_toml["eps_lj"].value<double>())
-        .build();
+  AtomType parse_atom_type(toml::table& config, std::string atom_type) {
+    auto mapping = parse_table(config);
+    // Partially create the builder, setting all fundamental parameters
+    auto builder =
+        AtomType::create(atom_type)
+            .mass(maybe_find<double>(mapping, "mass"))
+            .num_electrons(maybe_find<double>(mapping, "num_electrons"))
+            .nuclear_charge(maybe_find<double>(mapping, "nuclear_charge"));
+    // Remove fundamental parameters from the mapping
+    mapping.erase("mass");
+    mapping.erase("num_electrons");
+    mapping.erase("nuclear_charge");
+    // Set non.fundamental parameters and return the AtomType
+    return builder.others(mapping).build();
   }
 };
 
