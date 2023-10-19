@@ -64,6 +64,8 @@ class ArgonBox : public ::testing::Test {
   std::shared_ptr<DynamicAtomicState> atomic_state;
   std::map<std::string, std::shared_ptr<AtomType>> atom_types;
 
+  // Lennard-Jones parameters are taken from
+  // https://openkim.org/id/MO_959249795837_003
   static constexpr std::string_view toml = R"(
     [AtomTypes.Ar]      
     sigma_lj = 3.405

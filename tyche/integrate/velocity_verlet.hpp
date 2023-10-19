@@ -6,7 +6,6 @@
 
 // C++ Standard Libraries
 #include <cstdint>
-#include <optional>
 // Third-Party Libraries
 //
 // Project Inclusions
@@ -27,8 +26,7 @@ class VelocityVerlet : public Integrate {
    * @param dt Time increment for simulation step.
    * @param num_steps Number of integration steps to run the simulation for.
    */
-  VelocityVerlet(std::optional<double> dt,
-                 std::optional<std::size_t> num_steps);
+  VelocityVerlet(double dt, std::size_t num_steps);
 
   /**
    * @brief Various post-construction initialisation tasks for the atomic state.

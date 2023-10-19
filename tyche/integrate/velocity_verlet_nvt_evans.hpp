@@ -6,7 +6,6 @@
 
 // C++ Standard Libraries
 #include <cstdint>
-#include <optional>
 // Third-Party Libraries
 //
 // Project Inclusions
@@ -32,9 +31,7 @@ class VelocityVerletNVTEvans : public VelocityVerlet, public Thermostat {
    * @param temperature The kinetic temperature to keep constant during
    * simulation.
    */
-  VelocityVerletNVTEvans(std::optional<double> dt,
-                         std::optional<std::size_t> num_steps,
-                         std::optional<double> temperature);
+  VelocityVerletNVTEvans(double dt, std::size_t num_steps, double temperature);
 
   /**
    * @brief Various post-construction initialisation tasks for the atomic state.

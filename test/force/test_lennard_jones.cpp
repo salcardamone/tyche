@@ -23,7 +23,7 @@ using namespace tyche;
 TEST_F(TestLennardJonesEquilibrium, PotentialAndForce) {
   // Potential at rmin should be -epsilon
   double v_pot = lj->evaluate(*atomic_state, *cell);
-  ASSERT_EQ(-atom_types["Ar"]->get<double>("eps_lj").value(), v_pot);
+  ASSERT_EQ(-atom_types["Ar"]->get<double>("eps_lj"), v_pot);
 
   // Forces between atoms should be zero
   auto forces = atomic_state->force(0);

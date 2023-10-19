@@ -8,15 +8,13 @@
 #include <any>
 #include <map>
 #include <memory>
-#include <cstring>
-#include <optional>
+#include <string>
 // Third-Party Libraries
-#include <toml++/toml.h>
-#include <spdlog/spdlog.h>
+//
 // Project Inclusions
+#include "tyche/io/reader.hpp"
 #include "tyche/atom/atom_type.hpp"
 #include "tyche/force/force.hpp"
-#include "tyche/force/lennard_jones.hpp"
 
 namespace tyche {
 
@@ -34,23 +32,8 @@ class ForceFactory {
    * @return The force.
    */
   static std::unique_ptr<Force> create(
-      std::map<std::string, std::any> config,
-      const std::map<std::shared_ptr<AtomType>, std::size_t>& atom_type) {
-    auto type = maybe_find<std::string>(config, "type");
-    spdlog::info("Creating force of type: {}", type.value());
-
-    std::unique_ptr<Force> force;
-    try {
-      if (type.value() == "LennardJones") {
-        force = std::make_unique<LennardJones>(atom_type);
-      } else {
-        throw std::runtime_error("Unrecognised force: " + type.value());
-      }
-    } catch (std::bad_optional_access& err) {
-      throw std::runtime_error("Unrecognised force: " + type.value());
-    }
-    return force;
-  }
+      Reader::Mapping config,
+      const std::map<std::shared_ptr<AtomType>, std::size_t>& atom_type);
 };
 
 }  // namespace tyche

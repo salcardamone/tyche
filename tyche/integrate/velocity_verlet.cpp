@@ -13,8 +13,7 @@ namespace tyche {
 
 // ========================================================================== //
 
-VelocityVerlet::VelocityVerlet(std::optional<double> dt,
-                               std::optional<std::size_t> num_steps)
+VelocityVerlet::VelocityVerlet(double dt, std::size_t num_steps)
     : Integrate(dt, num_steps), half_dt_{dt_ / 2} {}
 
 // ========================================================================== //

@@ -26,14 +26,14 @@ class Integrate {
    * @param dt Time increment for simulation step in femtoseconds.
    * @param num_steps The number of integration steps to perform.
    */
-  Integrate(std::optional<double> dt, std::optional<std::size_t> num_steps)
-      : dt_{dt.value()}, num_steps_{num_steps.value()} {}
+  Integrate(double dt, std::size_t num_steps)
+      : dt_{dt}, num_steps_{num_steps} {}
 
   /**
    *
    */
   virtual void initialise(DynamicAtomicState& state) = 0;
-  
+
   /**
    * @brief Base virtual method to be overridden by all integrators. Step the
    * simulation forward by the time increment.
@@ -41,7 +41,8 @@ class Integrate {
    * @param forces The force evaluation object.
    * @param cell The simulation cell for periodic boundary conditions.
    */
-  virtual void step(DynamicAtomicState& state, Forces& forces, const Cell& cell) = 0;
+  virtual void step(DynamicAtomicState& state, Forces& forces,
+                    const Cell& cell) = 0;
 
   /**
    * @brief Getter for the time increment of the integrator.

@@ -29,8 +29,7 @@ class TestLennardJonesEquilibrium : public ArgonDimer {
     lj = std::make_unique<LennardJones>(atomic_state->atom_type_idx());
 
     // Lennard-Jones minimum value of the potential is found at 2^(1/6) * sigma
-    rij_min = std::pow(2, 1. / 6.) *
-              atom_types["Ar"]->get<double>("sigma_lj").value();
+    rij_min = std::pow(2, 1. / 6.) * atom_types["Ar"]->get<double>("sigma_lj");
     *atomic_state->pos(0) = rij_min;
   }
 

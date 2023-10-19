@@ -28,11 +28,11 @@ LennardJones::LennardJones(
       std::size_t idx = itype.second * atom_types.size() + jtype.second;
       std::size_t jdx = jtype.second * atom_types.size() + itype.second;
 
-      double eps_itype = itype.first->get<double>("eps_lj").value();
-      double eps_jtype = jtype.first->get<double>("eps_lj").value();
+      double eps_itype = itype.first->get<double>("eps_lj");
+      double eps_jtype = jtype.first->get<double>("eps_lj");
 
-      double sigma_itype = itype.first->get<double>("sigma_lj").value();
-      double sigma_jtype = jtype.first->get<double>("sigma_lj").value();
+      double sigma_itype = itype.first->get<double>("sigma_lj");
+      double sigma_jtype = jtype.first->get<double>("sigma_lj");
 
       eps_[idx] = eps_[jdx] = mix_eps(eps_itype, eps_jtype);
       sigma_[idx] = sigma_[jdx] = mix_sigma(sigma_itype, sigma_jtype);

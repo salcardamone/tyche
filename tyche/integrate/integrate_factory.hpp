@@ -5,17 +5,12 @@
 #define __TYCHE_INTEGRATE_INTEGRATE_FACTORY_HPP
 
 // C++ Standard Libraries
-#include <any>
 #include <memory>
-#include <cstring>
-#include <optional>
 // Third-Party Libraries
-#include <spdlog/spdlog.h>
+//
 // Project Inclusions
-#include "tyche/util/maybe.hpp"
+#include "tyche/io/reader.hpp"
 #include "tyche/integrate/integrate.hpp"
-#include "tyche/integrate/velocity_verlet.hpp"
-#include "tyche/integrate/velocity_verlet_nvt_evans.hpp"
 
 namespace tyche {
 
@@ -29,26 +24,7 @@ class IntegrateFactory {
    * @param config Mapping from Integrator parameter keys to values.
    * @return The integrator.
    */
-  static std::unique_ptr<Integrate> create(
-      std::map<std::string, std::any> config) {
-    std::unique_ptr<Integrate> integrator;
-    try {
-      auto type = maybe_find<std::string>(config, "type");
-      spdlog::info("Creating integrator of type: " + type.value());
-
-      auto timestep = maybe_find<double>(config, "timestep");
-      auto num_steps = maybe_find<double>(config, "num_steps");
-      if (type.value() == "VelocityVerlet") {
-        integrator =
-            std::move(select_velocity_verlet(config, timestep, num_steps));
-      } else {
-        throw std::runtime_error("Unrecognised integrator: " + type.value());
-      }
-    } catch (std::bad_optional_access& err) {
-      throw std::runtime_error(err.what());
-    }
-    return integrator;
-  }
+  static std::unique_ptr<Integrate> create(Reader::Mapping config);
 
  private:
   /**
@@ -59,35 +35,7 @@ class IntegrateFactory {
    * @return The integrator.
    */
   static std::unique_ptr<Integrate> select_velocity_verlet(
-      std::map<std::string, std::any> config, std::optional<double> timestep,
-      std::optional<std::size_t> num_steps) {
-    std::unique_ptr<Integrate> integrator;
-    try {
-      auto control = maybe_find<std::string>(config, "control.type");
-      // If there's no controller in the configuration, we just initialise a
-      // regular Velocity Verlet
-      if (control == std::nullopt) {
-        spdlog::info("Creating Velocity Verlet integrator with no controller.");
-        integrator = std::make_unique<VelocityVerlet>(timestep, num_steps);
-      }
-
-      auto ensemble = maybe_find<std::string>(config, "ensemble");
-      if (ensemble.value() == "NVT") {
-        auto temperature = maybe_find<double>(config, "control.temperature");
-        if (control.value() == "Evans") {
-          spdlog::info(
-              "Creating Velocity Verlet integrator with Evans thermostat at "
-              "temperature {}K.",
-              temperature.value());
-          integrator = std::make_unique<VelocityVerletNVTEvans>(
-              timestep, num_steps, temperature);
-        }
-      }
-    } catch (std::bad_optional_access& err) {
-      throw std::runtime_error(err.what());
-    }
-    return integrator;
-  }
+      Reader::Mapping config, double timestep, std::size_t num_steps);
 };
 
 }  // namespace tyche

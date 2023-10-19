@@ -9,11 +9,13 @@
 #include <map>
 #include <cstring>
 #include <cstdint>
+#include <sstream>
 #include <optional>
+#include <stdexcept>
 // Third-party Libraries
 //
 // Project Inclusions
-#include "tyche/util/maybe.hpp"
+#include "tyche/util/must.hpp"
 
 namespace tyche {
 
@@ -76,17 +78,16 @@ class AtomType {
    * parameters.
    * @param name The name of the parameter to try and retrieve from the
    * non-fundamental parameters.
-   * @param required If set to true, will throw an informative exception if the
-   * optional is empty.
-   * @return The value associated with the requested parameter. Optional; may
-   * return nothing if the parameter wasn't read from the configuration.
+   * @return The value associated with the requested parameter.
    */
   template <typename DataType>
-  std::optional<DataType> get(std::string name, bool required = true) {
-    auto val = maybe_find<DataType>(others_, name);
-    if (required && !val) {
-      throw std::runtime_error("Couldn't find parameter " + name +
-                               " for atom type " + id());
+  DataType get(std::string name) {
+    DataType val;
+    try {
+      val = must_find<DataType>(others_, name);
+    } catch (std::runtime_error& err) {
+      throw std::runtime_error("Atom Type " + id() +
+                               " parameter lookup failed. " + err.what());
     }
     return val;
   }

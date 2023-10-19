@@ -14,10 +14,9 @@ namespace tyche {
 
 // ========================================================================== //
 
-VelocityVerletNVTEvans::VelocityVerletNVTEvans(
-    std::optional<double> dt, std::optional<std::size_t> num_steps,
-    std::optional<double> temperature)
-    : VelocityVerlet(dt, num_steps), Thermostat(temperature.value()) {}
+VelocityVerletNVTEvans::VelocityVerletNVTEvans(double dt, std::size_t num_steps,
+                                               double temperature)
+    : VelocityVerlet(dt, num_steps), Thermostat(temperature) {}
 
 // ========================================================================== //
 

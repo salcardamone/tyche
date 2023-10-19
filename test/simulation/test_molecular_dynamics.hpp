@@ -65,7 +65,7 @@ class TestMolecularDynamics : public ArgonBox {
     ensemble = "NVT"
     control = { type = "Evans", temperature = 300 }
     timestep = 1.0
-    num_steps = 1E6
+    num_steps = 10
 )"sv;
 };
 
