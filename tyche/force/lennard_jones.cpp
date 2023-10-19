@@ -16,6 +16,8 @@
 
 namespace tyche {
 
+// ========================================================================== //
+
 LennardJones::LennardJones(
     const std::map<std::shared_ptr<AtomType>, std::size_t>& atom_types)
     : eps_(atom_types.size() * atom_types.size()),
@@ -37,6 +39,8 @@ LennardJones::LennardJones(
     }
   }
 }
+
+// ========================================================================== //
 
 double LennardJones::evaluate(DynamicAtomicState& state, const Cell& cell) {
   double pot = 0;
@@ -90,5 +94,7 @@ double LennardJones::evaluate(DynamicAtomicState& state, const Cell& cell) {
   }
   return pot;
 }
+
+// ========================================================================== //
 
 }  // namespace tyche

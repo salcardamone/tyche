@@ -5,7 +5,6 @@
 #define __TYCHE_CELL_HPP
 
 // C++ Standard Libraries
-#include <cmath>
 #include <optional>
 // Third-Party Libraries
 //
@@ -84,22 +83,19 @@ class CubicCell : public Cell {
    * @brief Class constructor.
    * @param length The length of each side of the cubic cell.
    */
-  CubicCell(std::optional<double> length) : length_(length.value()) {
-    if (length_ <= 0)
-      throw std::runtime_error(
-          "Cubic cell length must be strictly greater than zero.");
-  }
+  CubicCell(std::optional<double> length);
 
   /**
    * @brief Return the volume of the cell.
    * @return The volume of the cell.
    */
-  double volume() const { return length() * length() * length(); }
+  double volume() const;
 
   /**
-   *
+   * @brief Getter for the length of the cell side.
+   * @return The length of the cell's side.
    */
-  double length() const { return length_; }
+  double length() const;
 
   /**
    * @brief Apply periodic-boundary conditions to a position vector. Origin is
@@ -108,11 +104,7 @@ class CubicCell : public Cell {
    * @param y y-coordinate of the input position vector.
    * @param z z-coordinate of the input position vector.
    */
-  void pbc(double &x, double &y, double &z) const override final {
-    x -= std::floor(x / length()) * length();
-    y -= std::floor(y / length()) * length();
-    z -= std::floor(z / length()) * length();
-  }
+  void pbc(double &x, double &y, double &z) const override final;
 
   /**
    * @brief Apply the minimum image convention to vector.
@@ -120,11 +112,7 @@ class CubicCell : public Cell {
    * @param y y-coordinate of the input vector.
    * @param z z-coordinate of the input vector.
    */
-  void min_image(double &x, double &y, double &z) const override final {
-    x -= std::round(x / length()) * length();
-    y -= std::round(y / length()) * length();
-    z -= std::round(z / length()) * length();
-  }
+  void min_image(double &x, double &y, double &z) const override final;
 
  private:
   double length_;

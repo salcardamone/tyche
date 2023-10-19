@@ -66,6 +66,8 @@ class ArgonBox : public ::testing::Test {
 
   static constexpr std::string_view toml = R"(
     [AtomTypes.Ar]      
+    sigma_lj = 3.405
+    eps_lj = 0.000119188
   )"sv;
   // Density from Wikipedia of Argon under STP is 1.784 kg / litre
   double density =
