@@ -76,12 +76,19 @@ class AtomType {
    * parameters.
    * @param name The name of the parameter to try and retrieve from the
    * non-fundamental parameters.
+   * @param required If set to true, will throw an informative exception if the
+   * optional is empty.
    * @return The value associated with the requested parameter. Optional; may
    * return nothing if the parameter wasn't read from the configuration.
    */
   template <typename DataType>
-  std::optional<DataType> get(std::string name) {
-    return maybe_find<DataType>(others_, name);
+  std::optional<DataType> get(std::string name, bool required = true) {
+    auto val = maybe_find<DataType>(others_, name);
+    if (required && !val) {
+      throw std::runtime_error("Couldn't find parameter " + name +
+                               " for atom type " + id());
+    }
+    return val;
   }
 
   /**

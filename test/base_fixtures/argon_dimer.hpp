@@ -28,12 +28,12 @@ class ArgonDimer : public ::testing::Test {
    */
   void SetUp() {
     toml::table config = toml::parse(toml);
-    AtomTypeReader reader(config);
-    atom_types = reader.parse();
+    AtomTypeReader atom_type_reader;
+    atom_types = atom_type_reader.parse(*config["AtomTypes"].as_table());
 
-    AtomicStateReader reader2(config);
+    DynamicAtomicStateReader atomic_state_reader(atom_types);
     atomic_state = std::make_shared<DynamicAtomicState>(
-        std::move(reader2.parse_dynamic_atomic_state(atom_types)));
+        std::move(atomic_state_reader.parse(*config["Atoms"].as_table())));
 
     cell = std::make_unique<UnboundedCell>();
   }
@@ -43,6 +43,8 @@ class ArgonDimer : public ::testing::Test {
   std::shared_ptr<DynamicAtomicState> atomic_state;
   std::map<std::string, std::shared_ptr<AtomType>> atom_types;
 
+  // Lennard-Jones parameters are taken from
+  // https://openkim.org/id/MO_959249795837_003
   static constexpr std::string_view toml = R"(
     [Atoms.Ar]
     positions = [
@@ -50,7 +52,9 @@ class ArgonDimer : public ::testing::Test {
         [0.00000000, 0.00000000, 0.00000000],
     ]
 
-    [AtomTypes.Ar]      
+    [AtomTypes.Ar]
+    sigma_lj = 3.405
+    eps_lj = 0.000119188
   )"sv;
 };
 

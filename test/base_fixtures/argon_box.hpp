@@ -79,8 +79,8 @@ class ArgonBox : public ::testing::Test {
    */
   std::size_t CommonSetUp(std::size_t num_atoms) {
     toml::table config = toml::parse(toml);
-    AtomTypeReader reader(config);
-    atom_types = reader.parse();
+    AtomTypeReader reader;
+    atom_types = reader.parse(*config["AtomTypes"].as_table());
 
     atomic_state = std::make_shared<DynamicAtomicState>();
 
