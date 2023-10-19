@@ -6,6 +6,7 @@
 
 // C++ Standard Libraries
 #include <cstdint>
+#include <optional>
 // Third-Party Libraries
 //
 // Project Inclusions
@@ -26,8 +27,8 @@ class VelocityVerlet : public Integrate {
    * @param dt Time increment for simulation step.
    * @param num_steps Number of integration steps to run the simulation for.
    */
-  VelocityVerlet(std::optional<double> dt, std::optional<std::size_t> num_steps)
-      : Integrate(dt, num_steps), half_dt_{dt_ / 2} {}
+  VelocityVerlet(std::optional<double> dt,
+                 std::optional<std::size_t> num_steps);
 
   /**
    * @brief Various post-construction initialisation tasks for the atomic state.
@@ -36,8 +37,8 @@ class VelocityVerlet : public Integrate {
    * Maxwell-Boltzmann distribution at a given temperature.
    * @param state The atomic state to initialise.
    */
-  void initialise(DynamicAtomicState& state) {}
-  
+  void initialise(DynamicAtomicState& state);
+
   /**
    * @brief Propagate the atomic state forwards by the time increment using the
    * Velocity Verlet method:
@@ -50,11 +51,8 @@ class VelocityVerlet : public Integrate {
    * @param forces The force evaluation object.
    * @param cell The simulation cell for periodic boundary conditions.
    */
-  virtual void step(DynamicAtomicState& state, Forces& forces, const Cell& cell) {
-    half_step_one(state, cell);
-    forces.evaluate(state, cell);
-    half_step_two(state, cell);
-  }
+  virtual void step(DynamicAtomicState& state, Forces& forces,
+                    const Cell& cell);
 
  protected:
   double half_dt_;
@@ -69,21 +67,7 @@ class VelocityVerlet : public Integrate {
    * @param state The atomic state to propagate forwards.
    * @param cell The simulation cell for periodic boundary conditions.
    */
-  void half_step_one(DynamicAtomicState& state, const Cell& cell) {
-    Tensor<double, 2>::iterator pos = state.pos(), vel = state.vel();
-    Tensor<double, 2>::const_iterator force = state.force();
-    // Advance velocity by half timestep and position by full timestep
-    for (std::size_t iatom = 0; iatom < state.num_atoms(); ++iatom) {
-      double k = half_dt_ / state.atom_type(iatom)->mass();
-      for (std::size_t idim = 0; idim < 3; ++idim) {
-        *vel += k * *force++;
-        pos[idim] += *vel++ * dt_;
-      }
-      // Apply periodic boundary conditions
-      cell.pbc(pos[0], pos[1], pos[2]);
-      pos += 3;
-    }
-  }
+  void half_step_one(DynamicAtomicState& state, const Cell& cell);
 
   /**
    * @brief Propagate the atomic state forwards by the time increment using
@@ -94,17 +78,7 @@ class VelocityVerlet : public Integrate {
    * @param state The atomic state to propagate forwards.
    * @param cell The simulation cell for periodic boundary conditions.
    */
-  void half_step_two(DynamicAtomicState& state, const Cell& cell) {
-    Tensor<double, 2>::iterator vel = state.vel();
-    Tensor<double, 2>::const_iterator force = state.force();
-    // Advance velocity to full timestep
-    for (std::size_t iatom = 0; iatom < state.num_atoms(); ++iatom) {
-      double k = half_dt_ / state.atom_type(iatom)->mass();
-      for (std::size_t idim = 0; idim < 3; ++idim) {
-        *vel++ += k * *force++;
-      }
-    }
-  }
+  void half_step_two(DynamicAtomicState& state, const Cell& cell);
 };
 
 }  // namespace tyche

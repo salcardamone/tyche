@@ -5,16 +5,14 @@
 #define __TYCHE_INTEGRATE_VELOCITY_VERLET_NVT_EVANS_HPP
 
 // C++ Standard Libraries
-#include <limits>
 #include <cstdint>
 #include <optional>
 // Third-Party Libraries
 //
 // Project Inclusions
-#include "tyche/util/tensor.hpp"
+#include "tyche/system/cell.hpp"
 #include "tyche/atom/dynamic_atomic_state.hpp"
 #include "tyche/force/force.hpp"
-#include "tyche/system/cell.hpp"
 #include "tyche/system/thermostat.hpp"
 #include "tyche/integrate/velocity_verlet.hpp"
 
@@ -36,8 +34,7 @@ class VelocityVerletNVTEvans : public VelocityVerlet, public Thermostat {
    */
   VelocityVerletNVTEvans(std::optional<double> dt,
                          std::optional<std::size_t> num_steps,
-                         std::optional<double> temperature)
-      : VelocityVerlet(dt, num_steps), Thermostat(temperature.value()) {}
+                         std::optional<double> temperature);
 
   /**
    * @brief Various post-construction initialisation tasks for the atomic state.
@@ -46,7 +43,7 @@ class VelocityVerletNVTEvans : public VelocityVerlet, public Thermostat {
    * Maxwell-Boltzmann distribution at a given temperature.
    * @param state The atomic state to initialise.
    */
-  void initialise(DynamicAtomicState& state) override { initialise_velocities(state); }
+  void initialise(DynamicAtomicState& state) override;
 
   /**
    * @brief Propagate the atomic state forwards by the time increment using the
@@ -55,13 +52,7 @@ class VelocityVerletNVTEvans : public VelocityVerlet, public Thermostat {
    * @param forces The force evaluation object.
    * @param cell The simulation cell for periodic boundary conditions.
    */
-  void step(DynamicAtomicState& state, Forces& forces, const Cell& cell) {
-    thermostat(state);
-    half_step_one(state, cell);
-    forces.evaluate(state, cell);
-    half_step_two(state, cell);
-    thermostat(state);
-  }
+  void step(DynamicAtomicState& state, Forces& forces, const Cell& cell);
 
  protected:
   /**
@@ -69,15 +60,7 @@ class VelocityVerletNVTEvans : public VelocityVerlet, public Thermostat {
    * constraint, chi.
    * @param state The atomic state to thermostat.
    */
-  void thermostat(DynamicAtomicState& state) {
-    double scale = std::exp(-chi(state) * half_dt_);
-    Tensor<double, 2>::iterator vel = state.vel();
-    for (std::size_t iatom = 0; iatom < state.num_atoms(); ++iatom) {
-      for (std::size_t idim = 0; idim < 3; ++idim) {
-        *vel++ *= scale;
-      }
-    }
-  }
+  void thermostat(DynamicAtomicState& state);
 
   /**
    * @brief Compute the kinetic temperature constraint at an instant:
@@ -88,19 +71,7 @@ class VelocityVerletNVTEvans : public VelocityVerlet, public Thermostat {
    * @param state The atomic state to thermostat.
    * @return The kinetic temperature constraint.
    */
-  double chi(DynamicAtomicState& state) {
-    double power = 0;
-    Tensor<double, 2>::const_iterator vel = state.vel(), force = state.force();
-    for (std::size_t iatom = 0; iatom < state.num_atoms(); ++iatom) {
-      for (std::size_t idim = 0; idim < 3; ++idim) {
-        power += *vel++ * *force++;
-      }
-    }
-    // If velocities are just zero-initialised, then we need to avoid the
-    // division by zero
-    return 0.5 * power /
-           (state.kinetic() + std::numeric_limits<double>::epsilon());
-  }
+  double chi(DynamicAtomicState& state);
 };
 
 }  // namespace tyche
