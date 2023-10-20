@@ -33,6 +33,7 @@ void VelocityVerletNVTEvans::step(DynamicAtomicState& state, Forces& forces,
   forces.evaluate(state, cell);
   half_step_two(state, cell);
   thermostat(state);
+  ++current_step_;
 }
 
 // ========================================================================== //

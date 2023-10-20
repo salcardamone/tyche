@@ -27,10 +27,17 @@ class Integrate {
    * @param num_steps The number of integration steps to perform.
    */
   Integrate(double dt, std::size_t num_steps)
-      : dt_{dt}, num_steps_{num_steps} {}
+      : dt_(dt), num_steps_(num_steps), current_step_(0) {}
 
   /**
-   *
+   * @brief Virtual destructor.
+   */
+  virtual ~Integrate() = default;
+
+  /**
+   * @brief Post-construction initialisation routine. Manipulate the atomic
+   * state in some way if required.
+   * @param state The atomic state we're simulating.
    */
   virtual void initialise(DynamicAtomicState& state) = 0;
 
@@ -48,17 +55,22 @@ class Integrate {
    * @brief Getter for the time increment of the integrator.
    * @return The time increment.
    */
-  double dt() const { return dt_; }
+  const double dt() const { return dt_; }
 
   /**
    * @brief Getter for the number of timesteps to integrate for.
    * @return The number of timesteps.
    */
-  std::size_t num_steps() const { return num_steps_; }
+  const std::size_t num_steps() const { return num_steps_; }
+
+  /**
+   *
+   */
+  const std::size_t current_step() const { return current_step_; }
 
  protected:
   double dt_;
-  std::size_t num_steps_;
+  std::size_t num_steps_, current_step_;
 };
 
 }  // namespace tyche

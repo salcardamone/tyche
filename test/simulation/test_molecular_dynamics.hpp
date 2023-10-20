@@ -52,7 +52,7 @@ class TestMolecularDynamics : public ArgonBox {
     [Simulation.MolecularDynamics.Integrator]
     type = "VelocityVerlet"
     timestep = 1.0
-    num_steps = 10
+    num_steps = 1E5
 
       [Simulation.MolecularDynamics.Integrator.Control]
       ensemble = "NVT"
@@ -63,6 +63,11 @@ class TestMolecularDynamics : public ArgonBox {
     type = "xyz"
     frequency = 1E3
     path = "/tmp/test_molecular_dynamics.xyz"
+
+    [[Simulation.MolecularDynamics.Outputs]]
+    type = "therm"
+    frequency = 1E3
+    path = "/tmp/test_molecular_dynamics.therm"
 
     [[Simulation.MolecularDynamics.Forces]]
     type = "LennardJones"

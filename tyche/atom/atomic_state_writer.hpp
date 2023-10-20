@@ -21,6 +21,7 @@ namespace tyche {
 /**
  * @brief Abstract atomic state writer class to be overridden.
  */
+template <class AtomicStateType>
 class AtomicStateWriter : public Writer {
  public:
   /**
@@ -29,17 +30,17 @@ class AtomicStateWriter : public Writer {
    * @param atomic_state The state we'll be writing.
    */
   AtomicStateWriter(std::filesystem::path filename,
-                    std::shared_ptr<AtomicState> atomic_state)
-      : Writer(filename), atomic_state_{atomic_state} {}
+                    std::shared_ptr<AtomicStateType> atomic_state)
+      : Writer(filename), atomic_state_(atomic_state) {}
 
  protected:
-  std::shared_ptr<AtomicState> atomic_state_;
+  std::shared_ptr<AtomicStateType> atomic_state_;
 };
 
 /**
  * @brief Atomic state writer class for .xyz files.
  */
-class AtomicStateWriterXYZ : public AtomicStateWriter {
+class AtomicStateWriterXYZ : public AtomicStateWriter<AtomicState> {
  public:
   /**
    * @brief Class constructor.
@@ -55,7 +56,7 @@ class AtomicStateWriterXYZ : public AtomicStateWriter {
    * @param comment The comment that comes after the number of atoms in the .xyz
    * file.
    */
-  void write(std::optional<std::string> comment = std::nullopt) override {
+  void write(std::optional<std::string> comment = std::nullopt) {
     ofs_ << atomic_state_->num_atoms() << '\n';
     if (comment != std::nullopt) {
       ofs_ << *comment << '\n';

@@ -61,7 +61,7 @@ class MolecularDynamics : public Simulation {
 
   std::shared_ptr<DynamicAtomicState> atomic_state_;
   std::unique_ptr<Cell> cell_;
-  std::unique_ptr<Integrate> integrator_;
+  std::shared_ptr<Integrate> integrator_;
   std::unique_ptr<Forces> forces_;
   std::vector<WriterConfig> writers_;
 

@@ -50,8 +50,8 @@ MolecularDynamicsBuilder& MolecularDynamicsBuilder::cell(Reader::Mapping map) {
 MolecularDynamicsBuilder& MolecularDynamicsBuilder::output(
     Reader::Mapping map) {
   MolecularDynamics::WriterConfig writer_config;
-  writer_config.writer =
-      std::move(WriterFactory::create(map, simulation_.atomic_state_));
+  writer_config.writer = std::move(WriterFactory::create(
+      map, simulation_.atomic_state_, simulation_.integrator_));
   writer_config.frequency = must_find<double>(map, "frequency");
   simulation_.writers_.push_back(std::move(writer_config));
   return *this;

@@ -20,6 +20,11 @@ namespace tyche {
 class Force {
  public:
   /**
+   * @brief Virtual destructor.
+   */
+  virtual ~Force() = default;
+
+  /**
    * @brief Abstract base evaluation method for force.
    * @param state The atomic state for which we're calculating forces for.
    * @return The total energy associated with the forces.

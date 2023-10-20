@@ -28,6 +28,11 @@ class AtomicState {
   AtomicState() {}
 
   /**
+   * @brief Virtual destructor.
+   */
+  virtual ~AtomicState() = default;
+  
+  /**
    * @brief Add atoms to the atomic state.
    * @param atom_types Vector of atom types; one for each atom added.
    * @param pos Positional information for each atom.

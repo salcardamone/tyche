@@ -27,6 +27,7 @@ void VelocityVerlet::step(DynamicAtomicState& state, Forces& forces,
   half_step_one(state, cell);
   forces.evaluate(state, cell);
   half_step_two(state, cell);
+  ++current_step_;
 }
 
 // ========================================================================== //
