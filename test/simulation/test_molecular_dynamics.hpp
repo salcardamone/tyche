@@ -56,8 +56,10 @@ class TestMolecularDynamics : public ArgonBox {
 
       [Simulation.MolecularDynamics.Integrator.Control]
       ensemble = "NVT"
-      type = "Evans"
+      type = "Andersen"
       temperature = 300
+      t_relax = 100
+      softness = 0.75
 
     [[Simulation.MolecularDynamics.Outputs]]
     type = "xyz"
@@ -66,7 +68,7 @@ class TestMolecularDynamics : public ArgonBox {
 
     [[Simulation.MolecularDynamics.Outputs]]
     type = "therm"
-    frequency = 1E3
+    frequency = 1
     path = "/tmp/test_molecular_dynamics.therm"
 
     [[Simulation.MolecularDynamics.Forces]]

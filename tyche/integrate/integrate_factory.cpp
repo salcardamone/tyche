@@ -13,6 +13,7 @@
 #include "tyche/integrate/integrate_factory.hpp"
 #include "tyche/integrate/velocity_verlet.hpp"
 #include "tyche/integrate/velocity_verlet_nvt_evans.hpp"
+#include "tyche/integrate/velocity_verlet_nvt_andersen.hpp"
 
 namespace tyche {
 
@@ -58,6 +59,18 @@ std::unique_ptr<Integrate> IntegrateFactory::select_velocity_verlet(
           temperature);
       integrator = std::make_unique<VelocityVerletNVTEvans>(timestep, num_steps,
                                                             temperature);
+    } else if (control.value() == "Andersen") {
+      spdlog::info(
+          "Creating Velocity Verlet integrator with Andersen thermostat at "
+          "temperature {:.2f}K.",
+          temperature);
+      auto t_relax = must_find<double>(config, "Control.t_relax");
+      auto softness = must_find<double>(config, "Control.softness");
+      integrator = std::make_unique<VelocityVerletNVTAndersen>(
+          timestep, num_steps, temperature, t_relax, softness);
+    } else {
+      throw std::runtime_error("Unrecognised ensemble control: " +
+                               control.value());
     }
   }
   return integrator;
