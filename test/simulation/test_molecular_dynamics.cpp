@@ -14,6 +14,5 @@
  */
 TEST_F(TestMolecularDynamics, Basic) {
   SetUp(32);
-  //Thermostat::initialise_velocities(*atomic_state, 300);
   simulation->run();
 }

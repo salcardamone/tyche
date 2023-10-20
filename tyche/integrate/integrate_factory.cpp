@@ -39,7 +39,7 @@ std::unique_ptr<Integrate> IntegrateFactory::select_velocity_verlet(
     Reader::Mapping config, double timestep, std::size_t num_steps) {
   std::unique_ptr<Integrate> integrator;
 
-  auto control = maybe_find<std::string>(config, "control.type");
+  auto control = maybe_find<std::string>(config, "Control.type");
   // If there's no controller in the configuration, we just initialise a
   // regular Velocity Verlet
   if (control == std::nullopt) {
@@ -48,9 +48,9 @@ std::unique_ptr<Integrate> IntegrateFactory::select_velocity_verlet(
   }
 
   // If we have a controller, it has to derive from a thermodynamic ensemble
-  auto ensemble = must_find<std::string>(config, "ensemble");
+  auto ensemble = must_find<std::string>(config, "Control.ensemble");
   if (ensemble == "NVT") {
-    auto temperature = must_find<double>(config, "control.temperature");
+    auto temperature = must_find<double>(config, "Control.temperature");
     if (control.value() == "Evans") {
       spdlog::info(
           "Creating Velocity Verlet integrator with Evans thermostat at "

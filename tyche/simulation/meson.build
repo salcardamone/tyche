@@ -1,4 +1,9 @@
-simulation_lib_sources = ['molecular_dynamics.cpp']
+simulation_lib_sources = [
+  'simulation_factory.cpp',
+  'molecular_dynamics.cpp',
+  'molecular_dynamics_builder.cpp'
+]
+
 simulation_lib = shared_library('simulation',
   simulation_lib_sources,
   include_directories: tyche_include_dir,

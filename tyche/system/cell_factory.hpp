@@ -40,7 +40,7 @@ class CellFactory {
         // Note that although we're maybe finding doubles, they'll be coerced
         // into optionals of the appropriate numeric type in the constructor
         cell =
-            std::make_unique<CubicCell>(maybe_find<double>(config, "length"));
+            std::make_unique<CubicCell>(must_find<double>(config, "length"));
       } else {
         throw std::runtime_error("Unrecognised cell: " + type.value());
       }

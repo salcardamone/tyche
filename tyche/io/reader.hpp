@@ -7,7 +7,7 @@
 // C++ Standard Libraries
 #include <map>
 #include <any>
-#include <cstring>
+#include <string>
 // Third-Party Libraries
 //
 // Project Inclusions
@@ -24,6 +24,26 @@ class Reader {
   // various builders and factories. Provides a standard interface between
   // reader and constructors.
   using Mapping = std::map<std::string, std::any>;
+
+  /**
+   * @brief Take a map and for each key which contains a substring, strip that
+   * substring from the key and add it as a key in a new map, keeping the same
+   * value.
+   * @param map The map we're looking for keys in.
+   * @param substring The substring we're to strip from keys.
+   * @return The new map with stripped keys.
+   */
+  static Mapping remove_prefix(const Mapping& map, std::string substring) {
+    Mapping result;
+    for (const auto& entry : map) {
+      std::string key = entry.first;
+      if (key.find(substring) != std::string::npos) {
+        key.erase(0, substring.size());
+        result[key] = entry.second;
+      }
+    }
+    return result;
+  }
 };
 
 }  // namespace tyche

@@ -6,14 +6,13 @@
 
 // C++ Standard Libraries
 #include <memory>
-#include <cstring>
+#include <string>
 // Third-Party Libraries
-#include <toml++/toml.h>
+//
 // Project Inclusions
-#include "tyche/atom/dynamic_atomic_state.hpp"
+#include "tyche/io/reader.hpp"
+#include "tyche/atom/atomic_state.hpp"
 #include "tyche/simulation/simulation.hpp"
-#include "tyche/simulation/molecular_dynamics.hpp"
-#include "tyche/simulation/molecular_dynamics_reader.hpp"
 
 namespace tyche {
 
@@ -24,29 +23,12 @@ class SimulationFactory {
  public:
   /**
    * @brief Create a simulation instance from a TOML configuration.
-   * @param config_table The "Simulation" node in the configuration.
+   * @param config Mapping from Simulation parameter keys to values.
    * @param atomic_state The atomic state to be simulated.
    * @return Simulation instance.
    */
   static std::unique_ptr<Simulation> create(
-      toml::table simulation_config,
-      std::shared_ptr<DynamicAtomicState> atomic_state) {
-    auto type = simulation_config["type"].value<std::string>();
-    if (type == std::nullopt) {
-      throw std::runtime_error("Simulation type must be specified.");
-    }
-    spdlog::info("Creating simulation of type: {}", *type);
-
-    std::unique_ptr<Simulation> simulation;
-    if (*type == "MolecularDynamics") {
-      MolecularDynamicsReader reader(atomic_state);
-      simulation = std::make_unique<MolecularDynamics>(std::move(
-          reader.parse(*simulation_config["MolecularDynamics"].as_table())));
-    } else {
-      throw std::runtime_error("Unrecognised simulation type: " + *type);
-    }
-    return simulation;
-  }
+      Reader::Mapping& config, std::shared_ptr<AtomicState> atomic_state);
 };
 
 }  // namespace tyche

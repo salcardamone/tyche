@@ -53,6 +53,7 @@ class TOMLReader : public Reader {
         key_val += prefix.value() + ".";
       }
       key_val += key.str();
+
       if constexpr (toml::is_number<decltype(val)>) {
         mapping[key_val] = static_cast<double>(val.get());
       } else if constexpr (toml::is_string<decltype(val)>) {
@@ -63,8 +64,21 @@ class TOMLReader : public Reader {
         auto subtable_map =
             parse_table(val, std::optional<std::string>(key_val));
         mapping.insert(subtable_map.begin(), subtable_map.end());
-      } else {
-        spdlog::error("Unrecognised type of TOML entry.");
+      } else if constexpr (toml::is_array<decltype(val)>) {
+        // Create a vector of the elements within the array
+        // Note that if we have an array of tables, then each element in the
+        // vector will be a std::map<std::string,std::any>
+        std::vector<std::any> contents;
+        for (auto&& elem : *val.as_array()) {
+          elem.visit([&](auto&& el) {
+            if constexpr (toml::is_string<decltype(el)>) {
+              contents.push_back(*el);
+            } else if constexpr (toml::is_table<decltype(el)>) {
+              contents.push_back(parse_table(el));
+            }
+          });
+        }
+        mapping[key_val] = contents;
       }
     });
     return mapping;
@@ -82,7 +96,7 @@ class TOMLReader : public Reader {
     }
     return keys;
   }
-  
+
   /**
    * @brief Parse a TOML array of TOML tables into an iterable of mappings from
    * keys into their values.
