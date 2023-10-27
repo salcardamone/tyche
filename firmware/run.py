@@ -5,7 +5,9 @@ vu = VUnit.from_argv()
 vu.add_vhdl_builtins()
 
 lib = vu.add_library("lib")
-lib.add_source_files(Path(__file__).parent / "packages" / "*.vhd")
-lib.add_source_files(Path(__file__).parent / "components" / "dot_product" / "*.vhd")
+lib.add_source_files(Path(__file__).parent / "packages" / "vector" / "*.vhd")
+lib.add_source_files(Path(__file__).parent / "test" / "packages" / "vector" / "*.vhd")
+
+lib.set_sim_option("nvc.sim_flags", ["--dump-arrays", "--format=fst"])
 
 vu.main()
