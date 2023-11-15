@@ -45,22 +45,20 @@ architecture rtl of complex_complex_multiply is
   -- Latency of the pipeline
   constant latency : positive := 4;
   -- Format of product when forming cross terms from input
-  constant fmt_tmp : fixed_t := (
+  constant fmt_inter : fixed_t := (
     is_signed     => fmt_arg.is_signed, num_int_bits => 2 * fmt_arg.num_int_bits,
     num_frac_bits => 2 * fmt_arg.num_frac_bits);
 
-  signal a_re_reg, a_im_reg : std_logic_vector(num_bits(fmt_arg) - 1 downto 0)
-    := (others => '0');
-  signal b_re_reg, b_im_reg : std_logic_vector(num_bits(fmt_arg) - 1 downto 0)
-    := (others => '0');
-  signal a_re_b_re  : std_logic_vector(num_bits(fmt_tmp) - 1 downto 0)    := (others => '0');
-  signal a_re_b_im  : std_logic_vector(num_bits(fmt_tmp) - 1 downto 0)    := (others => '0');
-  signal a_im_b_re  : std_logic_vector(num_bits(fmt_tmp) - 1 downto 0)    := (others => '0');
-  signal a_im_b_im  : std_logic_vector(num_bits(fmt_tmp) - 1 downto 0)    := (others => '0');
-  signal real_part  : std_logic_vector(num_bits(fmt_tmp) - 1 downto 0)    := (others => '0');
-  signal imag_part  : std_logic_vector(num_bits(fmt_tmp) - 1 downto 0)    := (others => '0');
-  signal rounded_re : std_logic_vector(num_bits(fmt_result) - 1 downto 0) := (others => '0');
-  signal rounded_im : std_logic_vector(num_bits(fmt_result) - 1 downto 0) := (others => '0');
+  subtype arg_t is std_logic_vector(num_bits(fmt_arg) - 1 downto 0);
+  subtype inter_t is std_logic_vector(num_bits(fmt_inter) - 1 downto 0);
+  subtype result_t is std_logic_vector(num_bits(fmt_result) - 1 downto 0);
+
+  signal a_re_reg, a_im_reg     : arg_t    := (others => '0');
+  signal b_re_reg, b_im_reg     : arg_t    := (others => '0');
+  signal a_re_b_re, a_re_b_im   : inter_t  := (others => '0');
+  signal a_im_b_re, a_im_b_im   : inter_t  := (others => '0');
+  signal real_part, imag_part   : inter_t  := (others => '0');
+  signal rounded_re, rounded_im : result_t := (others => '0');
 begin
 
   assert (latency_ = latency)
@@ -69,7 +67,7 @@ begin
     positive'image(latency_) & " cycles)."
                      severity failure;
 
-  stage_one : process(clk, reset) is
+  stage_one : process(clk) is
   begin
     if rising_edge(clk) then
       if reset = '1' then
@@ -95,10 +93,10 @@ begin
         a_im_b_re <= (others => '0');
         a_im_b_im <= (others => '0');
       else
-        a_re_b_re <= multiply(a_re_reg, b_re_reg, fmt_arg, fmt_tmp);
-        a_re_b_im <= multiply(a_re_reg, b_im_reg, fmt_arg, fmt_tmp);
-        a_im_b_re <= multiply(a_im_reg, b_re_reg, fmt_arg, fmt_tmp);
-        a_im_b_im <= multiply(a_im_reg, b_im_reg, fmt_arg, fmt_tmp);
+        a_re_b_re <= multiply(a_re_reg, b_re_reg, fmt_arg, fmt_inter);
+        a_re_b_im <= multiply(a_re_reg, b_im_reg, fmt_arg, fmt_inter);
+        a_im_b_re <= multiply(a_im_reg, b_re_reg, fmt_arg, fmt_inter);
+        a_im_b_im <= multiply(a_im_reg, b_im_reg, fmt_arg, fmt_inter);
       end if;
     end if;
   end process;
@@ -110,8 +108,8 @@ begin
         real_part <= (others => '0');
         imag_part <= (others => '0');
       else
-        real_part <= sub(a_re_b_re, a_im_b_im, fmt_tmp, fmt_tmp);
-        imag_part <= add(a_re_b_im, a_im_b_re, fmt_tmp, fmt_tmp);
+        real_part <= sub(a_re_b_re, a_im_b_im, fmt_inter, fmt_inter);
+        imag_part <= add(a_re_b_im, a_im_b_re, fmt_inter, fmt_inter);
       end if;
     end if;
   end process;
@@ -123,8 +121,8 @@ begin
         rounded_re <= (others => '0');
         rounded_im <= (others => '0');
       else
-        rounded_re <= cast(real_part, fmt_tmp, fmt_result);
-        rounded_im <= cast(imag_part, fmt_tmp, fmt_result);
+        rounded_re <= cast(real_part, fmt_inter, fmt_result);
+        rounded_im <= cast(imag_part, fmt_inter, fmt_result);
       end if;
     end if;
   end process;
