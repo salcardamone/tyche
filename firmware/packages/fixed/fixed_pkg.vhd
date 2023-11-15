@@ -71,13 +71,47 @@ package fixed_pkg is
   --         account signedness of the format.
   pure function max_val(constant fmt : fixed_t) return std_logic_vector;
 
-  -- @brief Determine the format of a number that results from the multiplication
-  --        of two other numbers.
-  -- @param fmt_a First argument format.
-  -- @param fmt_b Second argument format.
-  -- @return The format of the product.
-  pure function multiply_format(constant fmt_a : fixed_t; constant fmt_b : fixed_t)
-    return fixed_t;
+  -- @brief Add two fixed point numbers together, of the same format, and
+  --        return the sum cast to some output format.
+  --
+  --        Note that there is no overflow handling in VHDL; the result is just
+  --        result % max_val, i.e. the carry bit is just discarded. This applies
+  --        to all arithmetic functions here. We don't make any attempt to
+  --        recover the carry bit since this could have performance
+  --        implications when mapped to hardware. 
+  -- @param a The first value in sum.
+  -- @param b The second value in sum.
+  -- @param fmt_in Format of arguments.
+  -- @param fmt_out Format of output.
+  -- @return The sum in the output format.
+  pure function add(
+    constant a      : std_logic_vector; constant b : std_logic_vector;
+    constant fmt_in : fixed_t; constant fmt_out : fixed_t)
+    return std_logic_vector;
+  
+  -- @brief Subtract two fixed point numbers from one another, of the same
+  --        format, and return the difference cast to some output format.
+  -- @param a The first value in difference.
+  -- @param b The second value in difference.
+  -- @param fmt_in Format of arguments.
+  -- @param fmt_out Format of output.
+  -- @return The difference in the output format.
+  pure function sub(
+    constant a      : std_logic_vector; constant b : std_logic_vector;
+    constant fmt_in : fixed_t; constant fmt_out : fixed_t)
+    return std_logic_vector;
+
+  -- @brief Multiply two fixed point numbers together, of the same format, and
+  --        return the product cast to some output format.
+  -- @param a The first value in multiplication.
+  -- @param b The second value in multiplication.
+  -- @param fmt_in Format of arguments.
+  -- @param fmt_out Format of output.
+  -- @return The product in the output format.
+  pure function multiply(
+    constant a      : std_logic_vector; constant b : std_logic_vector;
+    constant fmt_in : fixed_t; constant fmt_out : fixed_t)
+    return std_logic_vector;
 
   -- @brief Perform convergent rounding of an integer when discarding lower
   --        order bits.

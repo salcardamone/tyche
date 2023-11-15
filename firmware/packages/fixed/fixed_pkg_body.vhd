@@ -239,7 +239,7 @@ package body fixed_pkg is
 
   -- =============================================================================
 
-  pure function multiply_format(constant fmt_a : fixed_t; constant fmt_b : fixed_t)
+  pure function addition_format(constant fmt_a : fixed_t; constant fmt_b : fixed_t)
     return fixed_t is
     variable result_fmt : fixed_t;
   begin
@@ -248,12 +248,74 @@ package body fixed_pkg is
     else
       result_fmt.is_signed := false;
     end if;
-    result_fmt.num_int_bits  := fmt_a.num_int_bits + fmt_b.num_int_bits;
-    result_fmt.num_frac_bits := fmt_a.num_frac_bits + fmt_b.num_frac_bits;
+    result_fmt.num_int_bits  := maximum(fmt_a.num_int_bits, fmt_b.num_int_bits) + 1;
+    result_fmt.num_frac_bits := maximum(fmt_a.num_frac_bits, fmt_b.num_frac_bits);
     return result_fmt;
-  end function multiply_format;
+  end function addition_format;
 
-  -- =============================================================================
+-- =============================================================================
+
+  pure function add(
+    constant a      : std_logic_vector; constant b : std_logic_vector;
+    constant fmt_in : fixed_t; constant fmt_out : fixed_t)
+    return std_logic_vector is
+
+    variable tmp : std_logic_vector(num_bits(fmt_in) - 1 downto 0);
+    variable res : std_logic_vector(num_bits(fmt_out) - 1 downto 0);
+  begin
+    if (fmt_in.is_signed) then
+      tmp := std_logic_vector(signed(a) + signed(b));
+    else
+      tmp := std_logic_vector(unsigned(a) + unsigned(b));
+    end if;
+    return cast(tmp, fmt_in, fmt_out);
+  end function add;
+
+-- =============================================================================
+
+  pure function sub(
+    constant a      : std_logic_vector; constant b : std_logic_vector;
+    constant fmt_in : fixed_t; constant fmt_out : fixed_t)
+    return std_logic_vector is
+
+    variable tmp : std_logic_vector(num_bits(fmt_in) - 1 downto 0);
+    variable res : std_logic_vector(num_bits(fmt_out) - 1 downto 0);
+  begin
+    if (fmt_in.is_signed) then
+      tmp := std_logic_vector(signed(a) - signed(b));
+    else
+      tmp := std_logic_vector(unsigned(a) - unsigned(b));
+    end if;
+    return cast(tmp, fmt_in, fmt_out);
+  end function sub;
+
+-- =============================================================================
+
+  pure function multiply(
+    constant a      : std_logic_vector; constant b : std_logic_vector;
+    constant fmt_in : fixed_t; constant fmt_out : fixed_t)
+    return std_logic_vector is
+
+    constant multiply_format : fixed_t := (
+      is_signed     => fmt_in.is_signed, num_int_bits => 2 * fmt_in.num_int_bits,
+      num_frac_bits => 2 * fmt_in.num_frac_bits
+      );
+    variable tmp : std_logic_vector(num_bits(multiply_format) - 1 downto 0);
+    variable res : std_logic_vector(num_bits(fmt_out) - 1 downto 0);
+  begin
+    if (fmt_in.is_signed) then
+      -- Multiplication of two signed values gives a result that's twice the
+      -- original length. However, we don't can about doubling the sign bit, so
+      -- we have to resize down by one here
+      tmp := std_logic_vector(
+        resize(signed(a) * signed(b), num_bits(multiply_format)));
+    else
+      tmp := std_logic_vector(unsigned(a) * unsigned(b));
+    end if;
+    return cast(tmp, multiply_format, fmt_out);
+  end function multiply;
+
+-- =============================================================================
 
   function cast(constant val     : std_logic_vector;
                 constant old_fmt : fixed_t; constant new_fmt : fixed_t)
@@ -297,6 +359,6 @@ package body fixed_pkg is
     return std_logic_vector(result);
   end function cast;
 
-  -- =============================================================================
+-- =============================================================================
 
 end package body fixed_pkg;

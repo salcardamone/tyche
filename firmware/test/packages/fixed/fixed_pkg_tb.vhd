@@ -84,26 +84,124 @@ begin
 
 -- =============================================================================
 
+    procedure test_addition is
+      constant Q8_8    : fixed_t := parse_format("Q8.8");
+      variable a, b, c : std_logic_vector(num_bits(Q8_8) - 1 downto 0);
+
+      constant UQ4_4   : fixed_t := parse_format("UQ4.4");
+      variable d, e, f : std_logic_vector(num_bits(UQ4_4) - 1 downto 0);
+    begin
+      -- 14.0 = 0'0000,1110.0000,0000 = 0xE00 = 3584
+      a := std_logic_vector(to_signed(14, a'length) sll Q8_8.num_frac_bits);
+      -- 6.0  = 0'0000,0110.0000,0000 = 0x60 = 96 
+      b := std_logic_vector(to_signed(6, b'length) sll Q8_8.num_frac_bits);
+      -- 14.0 + 6.0 = 20.0
+      --      = 0'0001,0100.0000,0000 = 0x1400 = 5120
+      c := add(a, b, Q8_8, Q8_8);
+      check(signed(c) = (to_signed(20, c'length) sll Q8_8.num_frac_bits),
+            "Computed value " & signed'image(signed(c)) &
+            " does not match expected value of " &
+            signed'image(to_signed(5120, c'length)));
+
+      -- 3.625 = 0'0000,0011.1010,0000 = 0x3A0 = 928
+      a := std_logic_vector(to_signed(928, a'length));
+      -- 16.75 = 0'0001,0000.1100,0000 = 0x10C0 = 4288
+      b := std_logic_vector(to_signed(4288, b'length));
+      -- 3.625 + 16.75 = 20.375
+      --       = 0'0001,0100.0110,0000 = 0x1460 = 5216
+      c := add(a, b, Q8_8, Q8_8);
+      check(signed(c) = (to_signed(5216, c'length)),
+            "Computed value " & signed'image(signed(c)) &
+            " does not match expected value of " &
+            signed'image(to_signed(5216, c'length)));
+
+      --   5.25 = 0'0000,0101.0100,0000 = 0x540 = 1344
+      a := std_logic_vector(to_signed(1344, a'length));
+      -- -12.75 = ¬(0'0000,1100.1100,0000) + 1
+      --        = 1'1111,0011.0100,0000 = 0x1F340 = 127808
+      b := std_logic_vector(to_signed(127808, b'length));
+      -- 5.25 - 12.75 = -7.5
+      --       = ¬(0'0000,0111.1000,0000) + 1
+      --       = 1'1111,1000.1000,0000 = 0x1F880 = 129152
+      c := add(a, b, Q8_8, Q8_8);
+      check(signed(c) = (to_signed(129152, c'length)),
+            "Computed value " & signed'image(signed(c)) &
+            " does not match expected value of " &
+            signed'image(to_signed(129152, c'length)));
+      
+      -- 7.0 = 0111.0000 = 0x70 = 112
+      d := std_logic_vector(to_unsigned(7, d'length) sll UQ4_4.num_frac_bits);
+      -- 2.0 = 0010.0000 = 0x20 = 32
+      e := std_logic_vector(to_unsigned(2, e'length) sll UQ4_4.num_frac_bits);
+      -- 7.0 + 2.0 = 9.0
+      --     = 1001.0000 = 0x90 = 144
+      f := add(d, e, UQ4_4, UQ4_4);
+      check(unsigned(f) = (to_unsigned(144, f'length)),
+            "Computed value " & unsigned'image(unsigned(f)) &
+            " does not match expected value of " &
+            unsigned'image(to_unsigned(144, f'length)));
+    end procedure test_addition;
+
+-- =============================================================================
+
     -- @brief Test that we can convergently round an integer when discarding
     --        lower order bits.
     procedure test_multiply is
-      variable lhs_fmt, rhs_fmt, res_fmt, exp_fmt : fixed_t;
-    begin
-      lhs_fmt := parse_format("Q8.8");
-      rhs_fmt := parse_format("Q8.8");
-      res_fmt := multiply_format(lhs_fmt, rhs_fmt);
-      exp_fmt := (is_signed => true, num_int_bits => 16, num_frac_bits => 16);
-      check(res_fmt = exp_fmt,
-            to_string(lhs_fmt) & " * " & to_string(rhs_fmt) & " = " &
-            to_string(exp_fmt) & ". Got: " & to_string(res_fmt));
+      constant Q8_8    : fixed_t := parse_format("Q8.8");
+      variable a, b, c : std_logic_vector(num_bits(Q8_8) - 1 downto 0);
 
-      lhs_fmt := parse_format("UQ3.1");
-      rhs_fmt := parse_format("Q7.8");
-      res_fmt := multiply_format(lhs_fmt, rhs_fmt);
-      exp_fmt := (is_signed => true, num_int_bits => 10, num_frac_bits => 9);
-      check(res_fmt = exp_fmt,
-            to_string(lhs_fmt) & " * " & to_string(rhs_fmt) & " = " &
-            to_string(exp_fmt) & ". Got: " & to_string(res_fmt));
+      constant UQ4_4   : fixed_t := parse_format("UQ4.4");
+      variable d, e, f : std_logic_vector(num_bits(UQ4_4) - 1 downto 0);
+    begin
+      -- 14.0 = 0'0000,1110.0000,0000 = 0xE00 = 3584
+      a := std_logic_vector(to_signed(14, a'length) sll Q8_8.num_frac_bits);
+      -- 6.0  = 0'0000,0110.0000,0000 = 0x60 = 96 
+      b := std_logic_vector(to_signed(6, b'length) sll Q8_8.num_frac_bits);
+      -- 14.0 * 6.0 = 84.0
+      --      = 0'0101,0100.0000,0000 = 0x5400 = 21504
+      c := multiply(a, b, Q8_8, Q8_8);
+      check(signed(c) = (to_signed(84, c'length) sll Q8_8.num_frac_bits),
+            "Computed value " & signed'image(signed(c)) &
+            " does not match expected value of " &
+            signed'image(to_signed(84, c'length)));
+
+      -- 3.625 = 0'0000,0011.1010,0000 = 0x3A0 = 928
+      a := std_logic_vector(to_signed(928, a'length));
+      -- 16.75 = 0'0001,0000.1100,0000 = 0x10C0 = 4288
+      b := std_logic_vector(to_signed(4288, b'length));
+      -- 3.625 * 16.75 = 60.71875
+      --       = 0'0011,1100.1011,1000 = 0x3CB8 = 15544
+      c := multiply(a, b, Q8_8, Q8_8);
+      check(signed(c) = (to_signed(15544, c'length)),
+            "Computed value " & signed'image(signed(c)) &
+            " does not match expected value of " &
+            signed'image(to_signed(15544, c'length)));
+
+      -- -5.25 = ¬(0'0000,0101.0100,0000) + 1
+      --       = 1'1111,1010.1100,0000 = 0x1FAC0 = 129728
+      a := std_logic_vector(to_signed(129728, a'length));
+      -- 12.75 = 0'0000,1100.1100,0000 = 0xCC0 = 3264
+      b := std_logic_vector(to_signed(3264, b'length));
+      -- -5.25 * 12.75 = -66.9375
+      --       = ¬(0'0100,0010.1111,0000) + 1
+      --       = 1'1011,1101.0001,0000 = 0x1BD10 = 113936
+      c := multiply(a, b, Q8_8, Q8_8);
+      check(signed(c) = (to_signed(113936, c'length)),
+            "Computed value " & signed'image(signed(c)) &
+            " does not match expected value of " &
+            signed'image(to_signed(113936, c'length)));
+
+      -- 7.0 = 0111.0000 = 0x70 = 112
+      d := std_logic_vector(to_unsigned(7, d'length) sll UQ4_4.num_frac_bits);
+      -- 2.0 = 0010.0000 = 0x20 = 32
+      e := std_logic_vector(to_unsigned(2, e'length) sll UQ4_4.num_frac_bits);
+      -- 7.0 * 2.0 = 14.0
+      --     = 1110.0000 = 0xE0 = 224
+      f := multiply(d, e, UQ4_4, UQ4_4);
+      check(unsigned(f) = (to_unsigned(224, f'length)),
+            "Computed value " & unsigned'image(unsigned(f)) &
+            " does not match expected value of " &
+            unsigned'image(to_unsigned(224, f'length)));
     end procedure test_multiply;
 
 -- =============================================================================
@@ -166,6 +264,7 @@ begin
 
     test_parse_format;
     test_round;
+    test_addition;
     test_multiply;
     test_cast;
 
