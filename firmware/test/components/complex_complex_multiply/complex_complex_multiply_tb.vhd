@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use ieee.fixed_pkg.all;
 use work.fixed_pkg.all;
 
 library vunit_lib;
@@ -16,10 +15,15 @@ architecture testbench of complex_complex_multiply_tb is
   constant clk_period : time     := 1 ns;
   constant latency    : positive := 4;
 
-  signal clk, reset : std_ulogic                                    := '0';
-  signal a_re, a_im : std_logic_vector(num_bits(Q4_4) - 1 downto 0) := (others => '0');
-  signal b_re, b_im : std_logic_vector(num_bits(Q4_4) - 1 downto 0) := (others => '0');
-  signal c_re, c_im : std_logic_vector(num_bits(Q4_4) - 1 downto 0) := (others => '0');
+  subtype val_t is std_logic_vector(num_bits(Q4_4) - 1 downto 0);
+
+  signal clk, reset     : std_ulogic := '0';
+  signal ds_vld, ds_rdy : std_ulogic := '0';
+  signal us_vld, us_rdy : std_ulogic := '0';
+
+  signal a_re, a_im : val_t := (others => '0');
+  signal b_re, b_im : val_t := (others => '0');
+  signal c_re, c_im : val_t := (others => '0');
 begin
 
   clock : process is
@@ -37,11 +41,15 @@ begin
     port map(
       clk       => clk,
       reset     => reset,
+      us_vld    => ds_vld, us_rdy => ds_rdy,
+      ds_vld    => us_vld, ds_rdy => us_rdy,
       arg_a_re  => a_re, arg_a_im => a_im,
       arg_b_re  => b_re, arg_b_im => b_im,
       result_re => c_re, result_im => c_im
       );
 
+  -- Test both the AXI interface to the complex-complex multiplier, along with
+  -- its ability to perform multiplications
   main : process is
     variable expected : std_logic_vector(num_bits(Q4_4) - 1 downto 0);
   begin
@@ -49,6 +57,9 @@ begin
     test_runner_setup(runner, runner_cfg);
 
     wait for clk_period;
+
+    ds_vld <= '1';
+    us_rdy <= '1';
 
     -- 1.0 = 0x10 = 0'0001.0000 = 16
     a_re <= std_logic_vector(to_signed(16, a_re'length));
@@ -72,7 +83,21 @@ begin
     -- -3.125 = 0x1CE = 1'1100.1110 = 462
     b_im <= std_logic_vector(to_signed(462, b_im'length));
 
-    wait for (latency - 1) * clk_period;
+    wait for clk_period;
+
+    -- No more data to give the multiplier
+    ds_vld <= '0';
+    -- Stall the pipeline; we're not ready to accept any more data
+    us_rdy <= '0';
+
+    -- The pipeline should continue to advance until valid data reaches the
+    -- final stage, at which point is should stall
+    wait for 10 * clk_period;
+
+    -- Subsequent clock cycles should give us valid data
+    us_rdy <= '1';
+
+    wait for clk_period;
 
     -- (1.0 + 2.0i) * (3.0 + 4.0i)
     -- = 3.0 + 4.0i + 6.0i - 8.0
@@ -102,6 +127,7 @@ begin
           "Expected equality between " & std_logic_vector'image(c_im) & " and " &
           std_logic_vector'image(expected));
 
+    -- Reset the multiplier
     reset <= '1';
 
     wait for clk_period;
