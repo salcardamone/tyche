@@ -11,7 +11,7 @@ end axi_lite_multiply_tb;
 
 architecture testbench of axi_lite_multiply_tb is
   constant clk_period       : time     := 1 ns;
-  constant C_AXI_ADDR_WIDTH : positive := 2;
+  constant C_AXI_ADDR_WIDTH : positive := 4;
   constant C_AXI_DATA_WIDTH : positive := 32;
 
   signal S_AXI_ACLK    : std_logic := '0';
@@ -21,6 +21,7 @@ architecture testbench of axi_lite_multiply_tb is
   signal S_AXI_AWVALID : std_logic                                       := '0';
   signal S_AXI_AWREADY : std_logic;
   signal S_AXI_AWADDR  : std_logic_vector(C_AXI_ADDR_WIDTH - 1 downto 0) := (others => '0');
+  signal S_AXI_AWPROT  : std_logic_vector(2 downto 0)                    := (others => '0');
 
   -- Write data AXI signals
   signal S_AXI_WVALID : std_logic                                         := '0';
@@ -31,11 +32,13 @@ architecture testbench of axi_lite_multiply_tb is
   -- Write return AXI signals
   signal S_AXI_BVALID : std_logic;
   signal S_AXI_BREADY : std_logic := '0';
+  signal S_AXI_BRESP  : std_logic_vector(1 downto 0);
 
   -- Read address AXI signals
   signal S_AXI_ARVALID : std_logic                                       := '0';
   signal S_AXI_ARREADY : std_logic;
   signal S_AXI_ARADDR  : std_logic_vector(C_AXI_ADDR_WIDTH - 1 downto 0) := (others => '0');
+  signal S_AXI_ARPROT  : std_logic_vector(2 downto 0)                    := (others => '0');
 
   -- Read data AXI signals
   signal S_AXI_RVALID : std_logic;
@@ -58,12 +61,13 @@ begin
     port map(
       S_AXI_ACLK    => S_AXI_ACLK, S_AXI_ARESETN => S_AXI_ARESETN,
       S_AXI_AWVALID => S_AXI_AWVALID, S_AXI_AWREADY => S_AXI_AWREADY,
-      S_AXI_AWADDR  => S_AXI_AWADDR,
+      S_AXI_AWADDR  => S_AXI_AWADDR, S_AXI_AWPROT => S_AXI_AWPROT,
       S_AXI_WVALID  => S_AXI_WVALID, S_AXI_WREADY => S_AXI_WREADY,
       S_AXI_WDATA   => S_AXI_WDATA, S_AXI_WSTRB => S_AXI_WSTRB,
       S_AXI_BVALID  => S_AXI_BVALID, S_AXI_BREADY => S_AXI_BREADY,
+      S_AXI_BRESP   => S_AXI_BRESP,
       S_AXI_ARVALID => S_AXI_ARVALID, S_AXI_ARREADY => S_AXI_ARREADY,
-      S_AXI_ARADDR  => S_AXI_ARADDR,
+      S_AXI_ARADDR  => S_AXI_ARADDR, S_AXI_ARPROT => S_AXI_ARPROT,
       S_AXI_RVALID  => S_AXI_RVALID, S_AXI_RREADY => S_AXI_RREADY,
       S_AXI_RDATA   => S_AXI_RDATA
       );
@@ -122,8 +126,8 @@ begin
       variable addrs : in array_of_addr;
       variable vals  : in array_of_val) is
     begin
-      S_AXI_WSTRB <= X"F";
-      S_AXI_BREADY  <= '1';
+      S_AXI_WSTRB  <= X"F";
+      S_AXI_BREADY <= '1';
       for idx in 0 to 1 loop
         S_AXI_AWVALID <= '1';
         S_AXI_WVALID  <= '1';
@@ -177,7 +181,7 @@ begin
       -- ====================================
       -- Try to write something to register 1
       -- ====================================
-      addr := std_logic_vector(to_unsigned(1, C_AXI_ADDR_WIDTH));
+      addr := std_logic_vector(to_unsigned(4, C_AXI_ADDR_WIDTH));
       val  := std_logic_vector(to_unsigned(69, C_AXI_DATA_WIDTH));
       write_axil(addr, val);
 
@@ -198,14 +202,14 @@ begin
       -- ===========================================
       -- Read whatever has been stored in register 0
       -- ===========================================
-      addr := std_logic_vector(to_unsigned(1, C_AXI_ADDR_WIDTH));
+      addr := std_logic_vector(to_unsigned(4, C_AXI_ADDR_WIDTH));
       val  := std_logic_vector(to_unsigned(69, C_AXI_DATA_WIDTH));
       read_axil(addr, val);
 
       -- ===========================================
       -- Read whatever has been stored in register 0
       -- ===========================================
-      addr := std_logic_vector(to_unsigned(2, C_AXI_ADDR_WIDTH));
+      addr := std_logic_vector(to_unsigned(8, C_AXI_ADDR_WIDTH));
       val  := std_logic_vector(to_unsigned(489, C_AXI_DATA_WIDTH));
       read_axil(addr, val);
 
@@ -213,7 +217,7 @@ begin
 
     procedure test_continuous is
       variable addrs : array_of_addr;
-      variable vals : array_of_val;
+      variable vals  : array_of_val;
     begin
       reset_core;
 
@@ -224,7 +228,7 @@ begin
       vals(1) := std_logic_vector(to_unsigned(420, C_AXI_DATA_WIDTH));
 
       write_axil_continuous(addrs, vals);
-      
+
     end procedure test_continuous;
 
   begin

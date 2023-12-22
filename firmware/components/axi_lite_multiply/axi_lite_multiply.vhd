@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 entity axi_lite_multiply is
   generic(
@@ -15,6 +16,7 @@ entity axi_lite_multiply is
     S_AXI_AWVALID : in  std_logic;
     S_AXI_AWREADY : out std_logic := '0';
     S_AXI_AWADDR  : in  std_logic_vector(C_AXI_ADDR_WIDTH - 1 downto 0);
+    S_AXI_AWPROT  : in  std_logic_vector(2 downto 0);
 
     -- Write data AXI signals
     S_AXI_WVALID : in  std_logic;
@@ -25,16 +27,19 @@ entity axi_lite_multiply is
     -- Write return AXI signals
     S_AXI_BVALID : out std_logic := '0';
     S_AXI_BREADY : in  std_logic;
+    S_AXI_BRESP  : out std_logic_vector(1 downto 0);
 
     -- Read address AXI signals
     S_AXI_ARVALID : in  std_logic;
     S_AXI_ARREADY : out std_logic := '0';
     S_AXI_ARADDR  : in  std_logic_vector(C_AXI_ADDR_WIDTH - 1 downto 0);
+    S_AXI_ARPROT  : in  std_logic_vector(2 downto 0);
 
     -- Read data AXI signals
     S_AXI_RVALID : out std_logic                                       := '0';
     S_AXI_RREADY : in  std_logic;
-    S_AXI_RDATA  : out std_logic_vector(C_AXI_DATA_WIDTH - 1 downto 0) := (others => '0')
+    S_AXI_RDATA  : out std_logic_vector(C_AXI_DATA_WIDTH - 1 downto 0) := (others => '0');
+    S_AXI_RRESP  : out std_logic_vector(1 downto 0)
     );
 end entity axi_lite_multiply;
 
@@ -43,6 +48,15 @@ end entity axi_lite_multiply;
 -- (2) Slave deasserts AWREADY and WREADY. Strobes data on WDATA.
 -- (3) Slave asserts BVALID. If master has asserted BREADY, handshake succeeds
 architecture behavioural of axi_lite_multiply is
+  constant num_regs      : integer := 4;
+  -- For 32-bit systems, memory is nibble-addressable, hence we only care about
+  -- the bit in position 2 as the address LSB. Note that for 64-bit systems,
+  -- this needs to be increased to 3 since everything is byte-addressable
+  constant addr_lsb      : integer := (C_AXI_DATA_WIDTH / 32) + 1;
+  -- Can bound the address MSB based on the number of registers we have
+  constant num_addr_bits : integer := integer(ceil(log2(real(num_regs))));
+  constant addr_msb      : integer := addr_lsb + num_addr_bits;
+
   signal arg_a, arg_b : std_logic_vector(C_AXI_DATA_WIDTH - 1 downto 0) := (others => '0');
   signal result       : std_logic_vector(C_AXI_DATA_WIDTH - 1 downto 0) := (others => '0');
 
@@ -52,6 +66,7 @@ architecture behavioural of axi_lite_multiply is
   signal axil_read_enable             : std_logic := '0';
   signal axil_rvalid                  : std_logic := '0';
   signal axil_rdata                   : std_logic_vector(C_AXI_DATA_WIDTH - 1 downto 0);
+  signal axil_araddr, axil_awaddr     : std_logic_vector(num_addr_bits - 1 downto 0);
   signal strobed_arg_a, strobed_arg_b : std_logic_vector(C_AXI_DATA_WIDTH - 1 downto 0);
 
   function apply_strobe(
@@ -75,6 +90,9 @@ architecture behavioural of axi_lite_multiply is
   end function apply_strobe;
 begin
 
+  S_AXI_RRESP <= (others => '0');
+  S_AXI_BRESP <= (others => '0');
+
   -- We're ready to receive the next read address from the master if we're not
   -- currently holding valid read data we're waiting for the master to accept
   process(S_AXI_ACLK) is
@@ -83,14 +101,14 @@ begin
       if (S_AXI_ARESETN = '0') then
         axil_arready <= '0';
       else
-        axil_arready <= (not S_AXI_RVALID);
+        axil_arready <= (not axil_rvalid);
       end if;
     end if;
   end process;
 
   S_AXI_ARREADY    <= axil_arready;
   -- We can do a read if we've got a valid address and we're ready to read it
-  axil_read_enable <= (S_AXI_ARVALID and S_AXI_ARREADY);
+  axil_read_enable <= (S_AXI_ARVALID and axil_arready);
 
   -- We have valid read data when we've taken an address from the read address
   -- bus. We have to deassert RVALID if we're servicing another read at the
@@ -101,9 +119,9 @@ begin
     if rising_edge(S_AXI_ACLK) then
       if (S_AXI_ARESETN = '0') then
         axil_rvalid <= '0';
-      elsif (axil_read_enable) then
+      elsif (axil_read_enable = '1') then
         axil_rvalid <= '1';
-      elsif (S_AXI_RREADY) then
+      elsif (S_AXI_RREADY = '1') then
         axil_rvalid <= '0';
       end if;
     end if;
@@ -114,10 +132,12 @@ begin
   -- Retrieve contents of a register if we don't have valid data on the read
   -- bus without the master having asserted ready.
   process(S_AXI_ACLK) is
+    variable address : std_logic_vector(num_addr_bits - 1 downto 0);
   begin
     if rising_edge(S_AXI_ACLK) then
-      if ((not S_AXI_RVALID) or S_AXI_RREADY) then
-        case S_AXI_ARADDR is
+      address := S_AXI_ARADDR(addr_msb - 1 downto addr_lsb);
+      if ((axil_rvalid = '0') or (S_AXI_RREADY = '1')) then
+        case address is
           when "00" =>
             axil_rdata <= arg_a;
           when "01" =>
@@ -125,7 +145,7 @@ begin
           when "10" =>
             axil_rdata <= result;
           when others =>
-            null;
+            axil_rdata <= axil_rdata;
         end case;
       end if;
     end if;
@@ -133,6 +153,7 @@ begin
 
   S_AXI_RDATA <= axil_rdata;
 
+  
   -- Report on whether we managed to write successfully or not. Signal needs to
   -- be registered until master has acknowledged with ready
   process(S_AXI_ACLK) is
@@ -189,6 +210,7 @@ begin
   -- set to whatever is on the write data bus if we're ready to receive that
   -- data from the master
   process(S_AXI_ACLK) is
+    variable address : std_logic_vector(num_addr_bits - 1 downto 0);
   begin
     if rising_edge(S_AXI_ACLK) then
       if (S_AXI_ARESETN = '0') then
@@ -196,22 +218,24 @@ begin
         arg_b  <= (others => '0');
         result <= (others => '0');
       else
+        address := S_AXI_AWADDR(addr_msb - 1 downto addr_lsb);
         -- If we performed an AWREADY/AWVALID handshake on the previous cycle,
         -- then we can register the write data
         if (axil_awready = '1') then
-          case S_AXI_AWADDR is
+          case address is
             when "00" =>
               arg_a <= strobed_arg_a;
             when "01" =>
               arg_b <= strobed_arg_b;
             when others =>
-              null;
+              arg_a <= arg_a;
+              arg_b <= arg_b;
           end case;
         end if;
         result <= std_logic_vector(unsigned(arg_a) + unsigned(arg_b));
       end if;
     end if;
   end process;
-  
+
 end architecture behavioural;
 
