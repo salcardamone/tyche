@@ -1,7 +1,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.fixed_pkg.all;
+
+library tyche_lib;
+use tyche_lib.fixed_pkg.all;
 
 --! @brief Multiplication of two complex numbers.
 entity complex_complex_multiply is

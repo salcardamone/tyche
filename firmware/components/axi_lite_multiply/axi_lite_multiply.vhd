@@ -64,9 +64,11 @@ architecture behavioural of axi_lite_multiply is
   signal axil_arready                 : std_logic := '0';
   signal axil_bvalid                  : std_logic := '0';
   signal axil_read_enable             : std_logic := '0';
+  signal axil_write_enable            : std_logic := '0';
   signal axil_rvalid                  : std_logic := '0';
+  signal axil_araddr                  : std_logic_vector(C_AXI_ADDR_WIDTH - 1 downto 0);
   signal axil_rdata                   : std_logic_vector(C_AXI_DATA_WIDTH - 1 downto 0);
-  signal axil_araddr, axil_awaddr     : std_logic_vector(num_addr_bits - 1 downto 0);
+  signal axil_awaddr                  : std_logic_vector(num_addr_bits - 1 downto 0);
   signal strobed_arg_a, strobed_arg_b : std_logic_vector(C_AXI_DATA_WIDTH - 1 downto 0);
 
   function apply_strobe(
@@ -93,19 +95,22 @@ begin
   S_AXI_RRESP <= (others => '0');
   S_AXI_BRESP <= (others => '0');
 
-  -- We're ready to receive the next read address from the master if we're not
-  -- currently holding valid read data we're waiting for the master to accept
-  process(S_AXI_ACLK) is
+  -- Read address latching; if we have a handshake on the address bus, then
+  -- store whatever the address is 
+  process (S_AXI_ACLK)
   begin
     if rising_edge(S_AXI_ACLK) then
-      if (S_AXI_ARESETN = '0') then
-        axil_arready <= '0';
+      if S_AXI_ARESETN = '0' then
+        axil_araddr <= (others => '1');
       else
-        axil_arready <= (not axil_rvalid);
+        if (axil_arready = '1' and S_AXI_ARVALID = '1') then
+          axil_araddr <= S_AXI_ARADDR;
+        end if;
       end if;
     end if;
   end process;
 
+  axil_arready     <= (not axil_rvalid);
   S_AXI_ARREADY    <= axil_arready;
   -- We can do a read if we've got a valid address and we're ready to read it
   axil_read_enable <= (S_AXI_ARVALID and axil_arready);
@@ -153,7 +158,10 @@ begin
 
   S_AXI_RDATA <= axil_rdata;
 
-  
+  -- ==========================================================================
+  --                                  WRITING
+  -- ==========================================================================
+
   -- Report on whether we managed to write successfully or not. Signal needs to
   -- be registered until master has acknowledged with ready
   process(S_AXI_ACLK) is
@@ -186,7 +194,8 @@ begin
       else
         axil_awready <=
           -- (1) If the slave raised AWREADY on the last cycle, it will have to
-          --     await the BVALID/BREADY handshake before proceeding
+          --     await the BVALID/BREADY handshake which takes a place the
+          --     clock cycle later, hence we toggle aw_ready
           (not axil_awready) and
           -- (2) If master has valid write address and data, then we can
           --     retrieve it
@@ -232,7 +241,7 @@ begin
               arg_b <= arg_b;
           end case;
         end if;
-        result <= std_logic_vector(unsigned(arg_a) + unsigned(arg_b));
+        result <= std_logic_vector(resize(unsigned(arg_a) * unsigned(arg_b), C_AXI_DATA_WIDTH));
       end if;
     end if;
   end process;

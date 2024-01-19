@@ -1,7 +1,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.fixed_pkg.all;
+
+library tyche_lib;
+use tyche_lib.fixed_pkg.all;
 
 library vunit_lib;
 context vunit_lib.vunit_context;
@@ -32,7 +34,7 @@ begin
     wait for clk_period / 2;
   end process;
 
-  multiplier : entity work.complex_complex_multiply(rtl)
+  multiplier : entity tyche_lib.complex_complex_multiply(rtl)
     generic map(
       fmt_arg    => Q4_4,
       fmt_result => Q4_4,
